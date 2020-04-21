@@ -24,8 +24,8 @@ async function main() {
             const tx: Transaction = Transaction.from(transaction);
             const prefix = tx.extra.toString('hex');
             if (prefix.includes('6b747828')) {
-              console.log('bazinga! we got a karai pointer!');
-              console.log(tx.extra.toString());
+              log.info('bazinga! we got a karai pointer!');
+              log.info(tx.extra.toString());
             }
           }
         }
