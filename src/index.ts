@@ -22,8 +22,11 @@ async function main() {
         if (block.transactions.length > 0) {
           for (const transaction of block.transactions) {
             const tx: Transaction = Transaction.from(transaction);
-            // tslint:disable-next-line: no-string-literal
-            console.log(tx.extra.toString('hex'));
+            const prefix = tx.extra.toString('hex');
+            if (prefix.includes('6b747828')) {
+              console.log('bazinga! we got a karai pointer!');
+              console.log(tx.extra.toString());
+            }
           }
         }
       }
