@@ -2,7 +2,7 @@ import ax from 'axios';
 import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
-import { Transaction } from 'turtlecoin-utils';
+import { Block, Transaction } from 'turtlecoin-utils';
 import { genesisBlock, prefix, suffix } from '../constants/karaiConstants';
 import { Database } from '../db/Database';
 import { InputTaker } from '../input/InputTaker';
@@ -72,9 +72,10 @@ export class Monitor extends EventEmitter {
             )
         );
       }
-      for (const block of getRawBlocksRes.data.items) {
-        if (block.transactions.length > 0) {
-          for (const transaction of block.transactions) {
+      for (const blockData of getRawBlocksRes.data.items) {
+        // log.info(block);
+        if (blockData.transactions.length > 0) {
+          for (const transaction of blockData.transactions) {
             const tx: Transaction = Transaction.from(transaction);
             const txExtra = tx.extra.toString('hex');
             if (txExtra.includes(prefix)) {
@@ -91,8 +92,16 @@ export class Monitor extends EventEmitter {
               log.debug(
                 'New karai pointer found:        ' + chalk.yellow.bold(ascii)
               );
+
+              const block = Block.from(blockData.block);
               try {
-                await this.db.sql('pointers').insert({ hex, ascii });
+                await this.db.sql('pointers').insert({
+                  ascii,
+                  block: block.hash,
+                  hex,
+                  timestamp: block.timestamp,
+                  transaction: tx.hash,
+                });
               } catch (error) {
                 if (error.errno && error.errno !== 19) {
                   throw new Error(error);
