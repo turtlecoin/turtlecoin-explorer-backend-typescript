@@ -8,3 +8,7 @@ export const sql = knex({
   },
   useNullAsDefault: true,
 });
+
+// DELETE FROM pointers;
+// DELETE FROM sqlite_sequence WHERE name="pointers";
+// DELETE FROM internal;
