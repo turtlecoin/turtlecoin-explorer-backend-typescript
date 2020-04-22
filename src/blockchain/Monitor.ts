@@ -4,7 +4,7 @@ import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Transaction } from 'turtlecoin-utils';
 import { genesisBlock, prefix, suffix } from '../constants/karaiConstants';
-import { sql } from '../db/sql';
+import { Database } from '../db/Database';
 import { InputTaker } from '../input/InputTaker';
 import { hexToIp, hexToPort } from '../utils/hexHelpers';
 import { sleep } from '../utils/sleep';
@@ -14,19 +14,22 @@ export class Monitor extends EventEmitter {
   private infoRes: any;
   private synced: boolean;
   private firstSync: boolean;
-  constructor(daemonURI: string, inputTaker: InputTaker) {
+  private db: Database;
+  constructor(db: Database, daemonURI: string, inputTaker: InputTaker) {
     super();
     this.daemonURI = daemonURI;
     this.infoRes = null;
     this.synced = false;
     this.firstSync = false;
+    this.db = db;
     this.init(inputTaker);
   }
 
   public async init(inputTaker: InputTaker) {
-    const optionsQuery = await sql('internal').select();
+    const optionsQuery = await this.db.sql('internal').select();
+
     if (optionsQuery.length === 0) {
-      await sql('internal').insert({});
+      await this.db.sql('internal').insert({});
     }
 
     const [options] = optionsQuery;
@@ -64,7 +67,7 @@ export class Monitor extends EventEmitter {
           'Fetched ' +
             getRawBlocksRes.data.items.length.toString() +
             ' blocks from daemon. ' +
-            chalk.yellow.bold(
+            chalk.green(
               i.toString() + ' / ' + this.infoRes.data.height.toString()
             )
         );
@@ -85,12 +88,11 @@ export class Monitor extends EventEmitter {
 
               const ascii = `${peerIP}:${port.toString()}`;
 
-              console.log(peerIP, port);
               log.debug(
-                'New karai pointer found:        ' + chalk.green.bold(hex)
+                'New karai pointer found:        ' + chalk.yellow.bold(ascii)
               );
               try {
-                await sql('pointers').insert({ hex, ascii });
+                await this.db.sql('pointers').insert({ hex, ascii });
               } catch (error) {
                 if (error.errno && error.errno !== 19) {
                   throw new Error(error);
@@ -105,7 +107,7 @@ export class Monitor extends EventEmitter {
       } else {
         i = Number(this.infoRes.data.height);
       }
-      await sql('internal').update({ syncHeight: i });
+      await this.db.sql('internal').update({ syncHeight: i });
     }
   }
 }

@@ -5,13 +5,14 @@ import log from 'electron-log';
 import express, { Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { sql } from '../db/sql';
+import { Database } from '../db/Database';
 
 export class API {
   public app: Express = express();
-
-  constructor(port: number) {
+  private db: Database;
+  constructor(db: Database, port: number) {
     this.init(port);
+    this.db = db;
   }
 
   public init(port: number) {
@@ -21,7 +22,7 @@ export class API {
     this.app.use(morgan('dev'));
 
     this.app.get('/pointers', async (req, res) => {
-      const data = await sql('pointers').select();
+      const data = await this.db.sql('pointers').select();
 
       res.json({
         data,
@@ -32,7 +33,8 @@ export class API {
     this.app.get('/pointer/:hex', async (req, res) => {
       const { hex } = req.params;
 
-      const data = await sql('pointers')
+      const data = await this.db
+        .sql('pointers')
         .select()
         .where({ hex });
 
@@ -43,7 +45,7 @@ export class API {
     });
 
     this.app.listen(Number(port), () => {
-      log.debug(chalk.green.bold('API listening on port ' + port));
+      log.debug('API listening on port ' + port);
     });
   }
 }

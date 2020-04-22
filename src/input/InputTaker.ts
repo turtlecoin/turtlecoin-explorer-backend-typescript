@@ -2,11 +2,12 @@ import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import readline, { createInterface } from 'readline';
-import { reset } from '../db/sql';
+import { Database } from '../db/Database';
 
 export class InputTaker extends EventEmitter {
+  public reset: () => void;
   private rl: readline.Interface;
-  constructor() {
+  constructor(db: Database) {
     super();
     this.rl = createInterface({
       input: process.stdin,
@@ -14,6 +15,7 @@ export class InputTaker extends EventEmitter {
     });
     this.handleCommand = this.handleCommand.bind(this);
     this.init();
+    this.reset = db.reset;
   }
 
   private init() {
@@ -29,7 +31,7 @@ export class InputTaker extends EventEmitter {
     switch (command) {
       case 'reset':
         log.info('Set sync height to karai genesis block.');
-        await reset();
+        await this.reset();
         this.emit('reset');
         break;
       case 'exit':
