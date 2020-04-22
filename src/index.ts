@@ -58,7 +58,7 @@ async function main() {
   const [options] = optionsQuery;
   const { syncHeight } = options;
 
-  let i = syncHeight || genesisBlock;
+  let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
   while (true) {
     const infoRes = await ax.get(DAEMON_URI + '/info');
     if (infoRes) {
