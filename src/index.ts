@@ -1,12 +1,8 @@
 import ax from 'axios';
-import bodyParser from 'body-parser';
 import chalk from 'chalk';
-import cors from 'cors';
 import log from 'electron-log';
-import express from 'express';
-import helmet from 'helmet';
-import morgan from 'morgan';
 import { Transaction } from 'turtlecoin-utils';
+import { API } from './api/api';
 import { genesisBlock, prefix } from './constants/karaiConstants';
 import { sql } from './db/sql';
 import { InputTaker } from './input/InputTaker';
@@ -20,38 +16,7 @@ const { DAEMON_URI, API_PORT } = process.env;
 
 async function main() {
   const inputTaker = new InputTaker();
-
-  const app = express();
-  app.use(helmet());
-  app.use(bodyParser.json());
-  app.use(cors());
-  app.use(morgan('dev'));
-
-  app.get('/pointers', async (req, res) => {
-    const data = await sql('pointers').select();
-
-    res.json({
-      data,
-      status: 'OK',
-    });
-  });
-
-  app.get('/pointer/:hex', async (req, res) => {
-    const { hex } = req.params;
-
-    const data = await sql('pointers')
-      .select()
-      .where({ hex });
-
-    res.json({
-      data,
-      status: 'OK',
-    });
-  });
-
-  app.listen(Number(API_PORT), () => {
-    log.debug('express listening on port ' + API_PORT);
-  });
+  const api = new API(Number(API_PORT!));
 
   const optionsQuery = await sql('internal').select();
   if (optionsQuery.length === 0) {

@@ -10,13 +10,13 @@ export const sql = knex({
 });
 
 export async function reset() {
-  await sql.raw(`
-    DELETE FROM pointers;
-    DELETE FROM sqlite_sequence WHERE name="pointers";
-    DELETE FROM internal;
-  `);
-}
+  const commands = [
+    'DELETE FROM pointers;',
+    'DELETE FROM sqlite_sequence WHERE name="pointers";',
+    'DELETE FROM internal;',
+  ];
 
-// DELETE FROM pointers;
-// DELETE FROM sqlite_sequence WHERE name="pointers";
-// DELETE FROM internal;
+  for (const command of commands) {
+    await sql.raw(command);
+  }
+}
