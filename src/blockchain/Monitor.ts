@@ -3,9 +3,10 @@ import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Transaction } from 'turtlecoin-utils';
-import { genesisBlock, prefix } from '../constants/karaiConstants';
+import { genesisBlock, prefix, suffix } from '../constants/karaiConstants';
 import { sql } from '../db/sql';
 import { InputTaker } from '../input/InputTaker';
+import { hexToIp, hexToPort } from '../utils/hexHelpers';
 import { sleep } from '../utils/sleep';
 
 export class Monitor extends EventEmitter {
@@ -74,17 +75,22 @@ export class Monitor extends EventEmitter {
             const tx: Transaction = Transaction.from(transaction);
             const txExtra = tx.extra.toString('hex');
             if (txExtra.includes(prefix)) {
-              const suffix = tx.extra
+              const peer = tx.extra
                 .toString('hex')
                 .split(prefix)[1]
-                .substring(0, 14);
-              const karaiPointer = prefix + suffix;
+                .substring(0, 12);
+              const hex = prefix + peer + suffix;
+              const peerIP = hexToIp(peer.substring(0, 8));
+              const port = hexToPort(peer.substring(8, 12));
+
+              const ascii = `${peerIP}:${port.toString()}`;
+
+              console.log(peerIP, port);
               log.debug(
-                'New karai pointer found:        ' +
-                  chalk.green.bold(karaiPointer)
+                'New karai pointer found:        ' + chalk.green.bold(hex)
               );
               try {
-                await sql('pointers').insert({ hex: karaiPointer });
+                await sql('pointers').insert({ hex, ascii });
               } catch (error) {
                 if (error.errno && error.errno !== 19) {
                   throw new Error(error);
