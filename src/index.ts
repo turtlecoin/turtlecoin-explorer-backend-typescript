@@ -7,7 +7,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { Transaction } from 'turtlecoin-utils';
-import { genesisBlock } from './constants/karaiConstants';
+import { genesisBlock, prefix } from './constants/karaiConstants';
 import { sql } from './db/sql';
 import { printAscii } from './utils/printAscii';
 import { setupEnv } from './utils/setupEnv';
@@ -33,12 +33,12 @@ async function main() {
     });
   });
 
-  app.get('/pointer/:hash', async (req, res) => {
-    const { hash } = req.params;
+  app.get('/pointer/:hex', async (req, res) => {
+    const { hex } = req.params;
 
     const data = await sql('pointers')
       .select()
-      .where({ hash });
+      .where({ hex });
 
     res.json({
       data,
@@ -56,7 +56,6 @@ async function main() {
   }
 
   const [options] = optionsQuery;
-  const { syncHeight } = options;
 
   let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
   while (true) {
@@ -77,9 +76,8 @@ async function main() {
         if (block.transactions.length > 0) {
           for (const transaction of block.transactions) {
             const tx: Transaction = Transaction.from(transaction);
-            const hash = tx.extra.toString('hex');
-            const prefix = '6b747828';
-            if (hash.includes(prefix)) {
+            const txExtra = tx.extra.toString('hex');
+            if (txExtra.includes(prefix)) {
               const suffix = tx.extra
                 .toString('hex')
                 .split(prefix)[1]
@@ -89,7 +87,7 @@ async function main() {
                 chalk.green.bold('New karai pointer found: ' + karaiPointer)
               );
               try {
-                await sql('pointers').insert({ hash: karaiPointer });
+                await sql('pointers').insert({ hex: karaiPointer });
               } catch (error) {
                 if (error.errno && error.errno !== 19) {
                   throw new Error(error);
