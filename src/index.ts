@@ -1,35 +1,61 @@
 import ax from 'axios';
-import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import chalk from 'chalk';
+import cors from 'cors';
 import log from 'electron-log';
-import fs from 'fs';
+import express from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import { Transaction } from 'turtlecoin-utils';
-import { sleep } from './sleep';
+import { genesisBlock } from './constants/karaiConstants';
+import { sql } from './db/sql';
+import { printAscii } from './utils/printAscii';
+import { setupEnv } from './utils/setupEnv';
+import { sleep } from './utils/sleep';
 
-const genesisBlock = 2472400;
-
-if (!fs.existsSync('pointers.json')) {
-  fs.writeFileSync('pointers.json', JSON.stringify([], null, 4));
-}
-
-const pointers = JSON.parse(fs.readFileSync('pointers.json', 'utf8'));
-
-// load the environment variables
-dotenv.config();
+printAscii();
+setupEnv();
+const { DAEMON_URI, API_PORT } = process.env;
 
 async function main() {
-  let i = genesisBlock;
+  const app = express();
+  app.use(helmet());
+  app.use(bodyParser.json());
+  app.use(cors());
+  app.use(morgan('dev'));
+
+  app.get('/pointers', async (req, res) => {
+    const data = await sql('pointers').select();
+
+    res.json({
+      data,
+      status: 'OK',
+    });
+  });
+
+  app.listen(Number(API_PORT), () => {
+    log.debug('express listening on port ' + API_PORT);
+  });
+
+  const optionsQuery = await sql('internal').select();
+  if (optionsQuery.length === 0) {
+    await sql('internal').insert({});
+  }
+
+  const [options] = optionsQuery;
+  const { syncHeight } = options;
+
+  let i = syncHeight || genesisBlock;
   while (true) {
-    const infoRes = await ax.get('http://cuveetrtl.czech.cloud:11898/info');
+    const infoRes = await ax.get(DAEMON_URI + '/info');
     if (infoRes) {
-      log.info('Network Block Height: ' + infoRes.data.height);
-      log.info('Requesting blocks from ' + i.toString());
-      const getRawBlocksRes = await ax.post(
-        'http://cuveetrtl.czech.cloud:11898/getrawblocks',
-        {
-          startHeight: i,
-        }
-      );
-      log.info(
+      log.debug('Network Block Height: ' + infoRes.data.height);
+      const percentSync = ((i / infoRes.data.height) * 100).toFixed(2);
+      log.debug('You are currently ' + percentSync + '% synced.');
+      const getRawBlocksRes = await ax.post(DAEMON_URI + '/getrawblocks', {
+        startHeight: i,
+      });
+      log.debug(
         'Fetched ' +
           getRawBlocksRes.data.items.length.toString() +
           ' blocks from daemon.'
@@ -46,15 +72,15 @@ async function main() {
                 .split(prefix)[1]
                 .substring(0, 14);
               const karaiPointer = prefix + suffix;
-              if (!pointers.includes(karaiPointer)) {
-                log.info(
-                  'bazinga! we got a new karai pointer! ' + karaiPointer
-                );
-                pointers.push(karaiPointer);
-                fs.writeFileSync(
-                  'pointers.json',
-                  JSON.stringify(pointers, null, 4)
-                );
+              log.debug(
+                chalk.green.bold('New karai pointer found: ' + karaiPointer)
+              );
+              try {
+                await sql('pointers').insert({ hash: karaiPointer });
+              } catch (error) {
+                if (error.errno && error.errno !== 19) {
+                  throw new Error(error);
+                }
               }
             }
           }
@@ -65,6 +91,7 @@ async function main() {
       } else {
         i = Number(infoRes.data.height);
       }
+      await sql('internal').update({ syncHeight: i });
     } else {
       throw new Error('/info did not respond.');
     }
