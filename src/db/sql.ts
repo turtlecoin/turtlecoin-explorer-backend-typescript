@@ -9,6 +9,14 @@ export const sql = knex({
   useNullAsDefault: true,
 });
 
+export async function reset() {
+  await sql.raw(`
+    DELETE FROM pointers;
+    DELETE FROM sqlite_sequence WHERE name="pointers";
+    DELETE FROM internal;
+  `);
+}
+
 // DELETE FROM pointers;
 // DELETE FROM sqlite_sequence WHERE name="pointers";
 // DELETE FROM internal;

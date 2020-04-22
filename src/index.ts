@@ -9,6 +9,7 @@ import morgan from 'morgan';
 import { Transaction } from 'turtlecoin-utils';
 import { genesisBlock, prefix } from './constants/karaiConstants';
 import { sql } from './db/sql';
+import { InputTaker } from './input/InputTaker';
 import { printAscii } from './utils/printAscii';
 import { setupEnv } from './utils/setupEnv';
 import { sleep } from './utils/sleep';
@@ -18,6 +19,8 @@ setupEnv();
 const { DAEMON_URI, API_PORT } = process.env;
 
 async function main() {
+  const inputTaker = new InputTaker();
+
   const app = express();
   app.use(helmet());
   app.use(bodyParser.json());
@@ -58,6 +61,10 @@ async function main() {
   const [options] = optionsQuery;
 
   let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
+  inputTaker.on('reset', () => {
+    return (i = genesisBlock);
+  });
+
   while (true) {
     const infoRes = await ax.get(DAEMON_URI + '/info');
     if (infoRes) {
