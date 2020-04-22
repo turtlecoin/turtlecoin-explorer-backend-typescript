@@ -33,6 +33,19 @@ async function main() {
     });
   });
 
+  app.get('/pointer/:hash', async (req, res) => {
+    const { hash } = req.params;
+
+    const data = await sql('pointers')
+      .select()
+      .where({ hash });
+
+    res.json({
+      data,
+      status: 'OK',
+    });
+  });
+
   app.listen(Number(API_PORT), () => {
     log.debug('express listening on port ' + API_PORT);
   });
