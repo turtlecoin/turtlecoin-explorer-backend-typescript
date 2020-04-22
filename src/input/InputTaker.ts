@@ -25,23 +25,12 @@ export class InputTaker extends EventEmitter {
     this.rl.question('', this.handleCommand);
   }
 
-  private action(command: string) {
+  private async action(command: string) {
     switch (command) {
       case 'reset':
-        this.rl.question(
-          chalk.yellow.bold(
-            'Are you sure you want to reset? This will wipe your sync progress and all stored karai pointers. (Y/n) '
-          ),
-          async (confirmation: string) => {
-            if (confirmation.toUpperCase() === 'Y') {
-              log.info('Resetting sync to karai genesis block.');
-              await reset();
-              this.emit('reset');
-            } else {
-              return;
-            }
-          }
-        );
+        log.info('Set sync height to karai genesis block.');
+        await reset();
+        this.emit('reset');
         break;
       case 'exit':
         log.info('Thanks for stopping by...');
