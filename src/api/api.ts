@@ -22,7 +22,14 @@ export class API {
     this.app.use(morgan('dev'));
 
     this.app.get('/pointers', async (req, res) => {
-      const data = await this.db.sql('pointers').select();
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+
+      const data = await this.db
+        .sql('pointers')
+        .select()
+        .orderBy('id', 'desc')
+        .offset(offset)
+        .limit(10);
 
       res.json({
         data,

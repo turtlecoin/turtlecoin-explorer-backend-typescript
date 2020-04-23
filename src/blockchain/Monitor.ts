@@ -31,9 +31,7 @@ export class Monitor extends EventEmitter {
     if (optionsQuery.length === 0) {
       await this.db.sql('internal').insert({});
     }
-
     const [options] = optionsQuery;
-    console.log(options);
 
     let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
     inputTaker.on('reset', () => {
