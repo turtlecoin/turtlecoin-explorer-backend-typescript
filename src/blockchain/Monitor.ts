@@ -3,40 +3,50 @@ import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Block, Transaction } from 'turtlecoin-utils';
+import { db, inputTaker } from '..';
 import { genesisBlock, prefix, suffix } from '../constants/karaiConstants';
-import { Database } from '../db/Database';
-import { InputTaker } from '../input/InputTaker';
 import { hexToIp, hexToPort } from '../utils/hexHelpers';
 import { sleep } from '../utils/sleep';
 
 export class Monitor extends EventEmitter {
+  public synced: boolean;
   private daemonURI: string;
   private infoRes: any;
-  private synced: boolean;
   private firstSync: boolean;
-  private db: Database;
-  constructor(db: Database, daemonURI: string, inputTaker: InputTaker) {
+  private syncHeight: number;
+  private networkHeight: number | null;
+  constructor(daemonURI: string) {
     super();
     this.daemonURI = daemonURI;
     this.infoRes = null;
-    this.synced = false;
     this.firstSync = false;
-    this.db = db;
-    this.init(inputTaker);
+    this.syncHeight = genesisBlock;
+    this.synced = false;
+    this.networkHeight = null;
+    this.init();
   }
 
-  public async init(inputTaker: InputTaker) {
-    const optionsQuery = await this.db.sql('internal').select();
+  public getSyncHeight() {
+    return this.syncHeight;
+  }
+
+  public getNetworkHeight() {
+    return this.networkHeight;
+  }
+
+  public async init() {
+    const optionsQuery = await db.sql('internal').select();
 
     if (optionsQuery.length === 0) {
-      await this.db.sql('internal').insert({});
+      await db.sql('internal').insert({});
     }
     const [options] = optionsQuery;
 
-    let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
+    this.syncHeight =
+      options && options.syncHeight ? options.syncHeight : genesisBlock;
     inputTaker.on('reset', () => {
       // tslint:disable-next-line: ban-comma-operator
-      return (i = genesisBlock), (this.firstSync = false);
+      return (this.syncHeight = genesisBlock), (this.firstSync = false);
     });
     this.infoRes = await ax.get(this.daemonURI + '/info');
     setInterval(async () => {
@@ -44,7 +54,8 @@ export class Monitor extends EventEmitter {
     }, 10000);
 
     while (true) {
-      if (this.infoRes.data.height === i) {
+      this.networkHeight = this.infoRes.data.height;
+      if (this.infoRes.data.height === this.syncHeight) {
         this.synced = true;
         if (!this.firstSync) {
           log.debug(
@@ -57,10 +68,13 @@ export class Monitor extends EventEmitter {
         await sleep(5000);
         continue;
       } else {
+        if (this.synced) {
+          log.debug(`New block found: ${this.infoRes.data.height}`);
+        }
         this.synced = false;
       }
       const getRawBlocksRes = await ax.post(this.daemonURI + '/getrawblocks', {
-        startHeight: i,
+        startHeight: this.syncHeight,
       });
       if (!this.firstSync) {
         log.debug(
@@ -68,7 +82,9 @@ export class Monitor extends EventEmitter {
             getRawBlocksRes.data.items.length.toString() +
             ' blocks from daemon. ' +
             chalk.green(
-              i.toString() + ' / ' + this.infoRes.data.height.toString()
+              this.syncHeight.toString() +
+                ' / ' +
+                this.infoRes.data.height.toString()
             )
         );
       }
@@ -95,7 +111,7 @@ export class Monitor extends EventEmitter {
 
               const block = Block.from(blockData.block);
               try {
-                await this.db.sql('pointers').insert({
+                await db.sql('pointers').insert({
                   ascii,
                   block: block.hash,
                   hex,
@@ -111,12 +127,12 @@ export class Monitor extends EventEmitter {
           }
         }
       }
-      if (i < Number(this.infoRes.data.height) - 100) {
-        i += 100;
+      if (this.syncHeight < Number(this.infoRes.data.height) - 100) {
+        this.syncHeight += 100;
       } else {
-        i = Number(this.infoRes.data.height);
+        this.syncHeight = Number(this.infoRes.data.height);
       }
-      await this.db.sql('internal').update({ syncHeight: i });
+      await db.sql('internal').update({ syncHeight: this.syncHeight });
     }
   }
 }

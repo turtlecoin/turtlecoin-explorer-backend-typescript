@@ -1,13 +1,11 @@
 import chalk from 'chalk';
-import log from 'electron-log';
 import { EventEmitter } from 'events';
 import readline, { createInterface } from 'readline';
-import { Database } from '../db/Database';
+import { db, monitor } from '..';
 
 export class InputTaker extends EventEmitter {
-  public reset: () => void;
   private rl: readline.Interface;
-  constructor(db: Database) {
+  constructor() {
     super();
     this.rl = createInterface({
       input: process.stdin,
@@ -15,7 +13,6 @@ export class InputTaker extends EventEmitter {
     });
     this.handleCommand = this.handleCommand.bind(this);
     this.init();
-    this.reset = db.reset;
   }
 
   private init() {
@@ -29,16 +26,31 @@ export class InputTaker extends EventEmitter {
 
   private async action(command: string) {
     switch (command) {
+      case 'status':
+        console.log(
+          chalk.bold.green('\n************************') +
+            chalk.bold.green('\n*        STATUS        *') +
+            chalk.bold.green('\n************************') +
+            '\nSync Height:    ' +
+            chalk.yellow.bold(monitor.getSyncHeight()) +
+            '\nNetwork Height: ' +
+            chalk.yellow.bold(monitor.getNetworkHeight()) +
+            '\nSynced:         ' +
+            (monitor.synced
+              ? chalk.green.bold('Yes\n')
+              : chalk.red.bold('No\n'))
+        );
+        break;
       case 'reset':
-        log.info('Resetting sync status. Please wait while we resync.');
-        await this.reset();
+        console.log('Resetting sync status. Please wait while we resync.');
+        await db.reset();
         this.emit('reset');
         break;
       case 'exit':
-        log.info('Thanks for stopping by...');
+        console.log('Thanks for stopping by...');
         process.exit(0);
       default:
-        log.warn(`Can't find a command ${command}.`);
+        console.log(`Can't find a command ${command}.`);
         break;
     }
   }

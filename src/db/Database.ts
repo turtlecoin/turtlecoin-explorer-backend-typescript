@@ -57,6 +57,6 @@ export class Database {
       );
     }
     this.ready = true;
-    log.debug('Database opened successfully..');
+    log.debug('Database opened successfully');
   }
 }
