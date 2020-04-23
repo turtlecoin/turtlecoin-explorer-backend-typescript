@@ -30,7 +30,7 @@ export class InputTaker extends EventEmitter {
   private async action(command: string) {
     switch (command) {
       case 'reset':
-        log.info('Set sync height to karai genesis block.');
+        log.info('Resetting sync status. Please wait while we resync.');
         await this.reset();
         this.emit('reset');
         break;

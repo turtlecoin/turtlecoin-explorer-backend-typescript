@@ -33,6 +33,8 @@ export class Monitor extends EventEmitter {
     }
 
     const [options] = optionsQuery;
+    console.log(options);
+
     let i = options && options.syncHeight ? options.syncHeight : genesisBlock;
     inputTaker.on('reset', () => {
       // tslint:disable-next-line: ban-comma-operator
