@@ -69,13 +69,14 @@ export class API {
     });
 
     this.app.get('/search', async (req, res) => {
-      const { query } = req.query;
-      if (!query) {
+      if (!req.query.query) {
         res.json({
           data: 'A search query is required.',
           status: 'ERROR',
         });
       }
+
+      const query = decodeURIComponent(req.query.query as string);
 
       const data = await db
         .sql('pointers')
