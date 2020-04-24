@@ -68,6 +68,31 @@ export class API {
       });
     });
 
+    this.app.get('/search', async (req, res) => {
+      const { query } = req.query;
+      if (!query) {
+        res.json({
+          data: 'A search query is required.',
+          status: 'ERROR',
+        });
+      }
+
+      const data = await db
+        .sql('pointers')
+        .select()
+        .where({ id: query })
+        .orWhere({ ascii: query })
+        .orWhere({ hex: query })
+        .orWhere({ block: query })
+        .orWhere({ transaction: query })
+        .orWhere({ timestamp: query });
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
     this.app.listen(Number(port), () => {
       log.debug('API listening on port ' + port);
     });
