@@ -71,8 +71,8 @@ export class API {
     this.app.get('/search', async (req, res) => {
       if (!req.query.query) {
         res.json({
-          data: 'A search query is required.',
-          status: 'ERROR',
+          data: [],
+          status: 'OK',
         });
       }
 
