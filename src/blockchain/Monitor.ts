@@ -46,6 +46,8 @@ export class Monitor extends EventEmitter {
       timeout *= 2;
     }
 
+    await db.cleanup();
+
     this.checkpoints = (
       await db
         .sql('blocks')
@@ -65,13 +67,14 @@ export class Monitor extends EventEmitter {
 
       for (const item of res.data.items) {
         const block = Block.from(item.block);
-        this.addCheckpoint(block.hash);
         await db.storeBlock(block);
 
         for (const tx of item.transactions) {
           const transaction: Transaction = Transaction.from(tx);
           await db.storeTransaction(transaction, block);
         }
+
+        this.addCheckpoint(block.hash);
       }
     }
   }
