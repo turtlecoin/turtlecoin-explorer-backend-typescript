@@ -48,6 +48,14 @@ export class Monitor extends EventEmitter {
       timeout *= 2;
     }
 
+    this.checkpoints = (
+      await db
+        .sql('blocks')
+        .select('hash')
+        .orderBy('height', 'desc')
+        .limit(100)
+    ).map((row) => row.hash);
+
     this.sync();
   }
 
@@ -60,15 +68,13 @@ export class Monitor extends EventEmitter {
       for (const item of res.data.items) {
         const block = Block.from(item.block);
         this.addCheckpoint(block.hash);
-        db.storeBlock(block);
+        await db.storeBlock(block);
 
         for (const tx of item.transactions) {
           const transaction: Transaction = Transaction.from(tx);
-          db.storeTransaction(transaction, block.hash);
+          await db.storeTransaction(transaction, block.hash);
         }
       }
-
-      log.info('last synced block: ' + this.checkpoints[0]);
     }
   }
 }

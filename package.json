@@ -48,7 +48,6 @@
     "knex": "^0.21.0",
     "morgan": "^1.10.0",
     "sqlite3": "^4.1.1",
-    "turtlecoin-utils": "^2.0.0",
-    "why-is-node-running": "^2.1.2"
+    "turtlecoin-utils": "^2.0.0"
   }
 }

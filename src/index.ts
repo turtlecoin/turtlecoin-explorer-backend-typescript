@@ -5,13 +5,6 @@ import { InputTaker } from './input/InputTaker';
 import { printAscii } from './utils/printAscii';
 import { setupEnv } from './utils/setupEnv';
 
-// tslint:disable-next-line: no-var-requires
-const fxLog = require('why-is-node-running');
-
-setTimeout(() => {
-  fxLog();
-}, 1000);
-
 printAscii();
 setupEnv();
 const { DAEMON_URI, API_PORT } = process.env;
