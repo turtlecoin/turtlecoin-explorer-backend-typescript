@@ -2,7 +2,7 @@ import ax from 'axios';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Block, Transaction } from 'turtlecoin-utils';
-import { db } from '..';
+import { DAEMON_URI, db, inputTaker } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
 import { sleep } from '../utils/sleep';
 
@@ -11,9 +11,9 @@ export class Monitor extends EventEmitter {
   private daemonURI: string;
   private checkpoints: string[];
 
-  constructor(daemonURI: string) {
+  constructor() {
     super();
-    this.daemonURI = daemonURI;
+    this.daemonURI = DAEMON_URI!;
     this.synced = false;
     this.checkpoints = [turtleGenesisBlock];
     this.init();
@@ -65,6 +65,10 @@ export class Monitor extends EventEmitter {
         blockHashCheckpoints: this.getCheckpoints(),
       });
       for (const item of res.data.items) {
+        if (inputTaker.killswitch) {
+          log.info('Thanks for stopping by!');
+          process.exit(0);
+        }
         const block = Block.from(item.block);
         await db.storeBlock(block);
 

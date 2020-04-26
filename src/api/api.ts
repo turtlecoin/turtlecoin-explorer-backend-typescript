@@ -4,15 +4,15 @@ import log from 'electron-log';
 import express, { Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { db, monitor } from '..';
+import { API_PORT, db, monitor } from '..';
 
 export class API {
   public app: Express = express();
-  constructor(port: number) {
-    this.init(port);
+  constructor() {
+    this.init();
   }
 
-  public init(port: number) {
+  public init() {
     this.app.use(helmet());
     this.app.use(bodyParser.json());
     this.app.use(cors());
@@ -94,8 +94,8 @@ export class API {
       });
     });
 
-    this.app.listen(Number(port), () => {
-      log.debug('API listening on port ' + port);
+    this.app.listen(Number(API_PORT!), () => {
+      log.debug('API listening on port ' + API_PORT);
     });
   }
 }
