@@ -103,7 +103,7 @@ export class Monitor extends EventEmitter {
               const peerIP = hexToIp(peer.substring(0, 8));
               const port = hexToPort(peer.substring(8, 12));
 
-              const ascii = `${peerIP}:${port.toString()}`;
+              const ascii = `ktx://${peerIP}:${port.toString()}`;
 
               log.debug(
                 'New karai pointer found:        ' + chalk.yellow.bold(ascii)
