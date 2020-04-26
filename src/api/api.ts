@@ -95,7 +95,7 @@ export class API {
     });
 
     this.app.listen(Number(API_PORT!), () => {
-      log.debug('API listening on port ' + API_PORT);
+      log.info('API listening on port ' + API_PORT);
     });
   }
 }

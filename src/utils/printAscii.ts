@@ -4,6 +4,6 @@ import { version } from '../constants/version';
 
 export function printAscii() {
   const ascii = `|   _   _  _  .\n               |( (_| |  (_| |\n`;
-  log.debug(chalk.green.bold(ascii));
-  log.debug(chalk.green.bold('karai-client ' + version));
+  log.info(chalk.green.bold(ascii));
+  log.info(chalk.green.bold('karai-client ' + version));
 }

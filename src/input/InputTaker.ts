@@ -1,7 +1,7 @@
-import chalk from 'chalk';
+import log from 'electron-log';
 import { EventEmitter } from 'events';
 import readline, { createInterface } from 'readline';
-import { db, monitor } from '..';
+import { db } from '..';
 
 export class InputTaker extends EventEmitter {
   public killswitch: boolean;
@@ -35,7 +35,7 @@ export class InputTaker extends EventEmitter {
   private async action(command: string) {
     switch (command) {
       case 'reset':
-        console.log('Resetting sync status. Please wait while we resync.');
+        log.info('Resetting sync status. Please wait while we resync.');
         await db.reset();
         this.emit('reset');
         break;
@@ -43,7 +43,7 @@ export class InputTaker extends EventEmitter {
         this.killswitch = true;
         break;
       default:
-        console.log(`Can't find a command ${command}.`);
+        log.info(`Can't find a command ${command}.`);
         break;
     }
   }
