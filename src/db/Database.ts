@@ -152,6 +152,8 @@ export class Database extends EventEmitter {
     const nonce = block.nonce;
     const activate_parent_block_version = block.activateParentBlockVersion;
 
+    await this.storeTransaction(block.minerTransaction, block);
+
     await this.sql('blocks').insert({
       activate_parent_block_version,
       hash,
