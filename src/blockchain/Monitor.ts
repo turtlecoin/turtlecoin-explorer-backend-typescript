@@ -70,7 +70,7 @@ export class Monitor extends EventEmitter {
 
         for (const tx of item.transactions) {
           const transaction: Transaction = Transaction.from(tx);
-          await db.storeTransaction(transaction, block.hash);
+          await db.storeTransaction(transaction, block);
         }
       }
     }

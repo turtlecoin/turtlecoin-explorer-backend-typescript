@@ -1,5 +1,6 @@
 // tslint:disable: variable-name
 
+import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import knex from 'knex';
@@ -36,41 +37,61 @@ export class Database extends EventEmitter {
 
   public async storeTransaction(
     transaction: Transaction,
-    blockHash: string
+    blockData: Block
   ): Promise<void> {
     const inputs = transaction.inputs;
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT INPUTS',
+      chalk.yellow.bold('SUBMIT')
+    );
     for (const input of inputs) {
-      log.debug('Inserting inputs for ' + transaction.hash);
       await this.sql('inputs').insert({
         string: input.toString(),
         transaction: transaction.hash,
         type: input.type,
       });
-      log.debug('Inserting inputs success ' + transaction.hash);
     }
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT INPUTS',
+      chalk.green.bold('SUCCESS')
+    );
 
     const outputs = transaction.outputs;
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT OUTPUTS',
+      chalk.yellow.bold('SUBMIT')
+    );
     for (const output of outputs) {
-      log.debug('Inserting inputs for ' + transaction.hash);
       await this.sql('inputs').insert({
         string: output.toString(),
         transaction: transaction.hash,
         type: output.type,
       });
-      log.debug('Inserting outputs success ' + transaction.hash);
     }
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT OUTPUTS',
+      chalk.green.bold('SUCCESS')
+    );
 
-    const signatures = transaction.signatures;
-    log.debug('Inserting signatures for ' + transaction.hash);
-    for (const signatureList of signatures) {
-      for (const signature of signatureList) {
-        await this.sql('signatures').insert({
-          string: signature,
-          transaction: transaction.hash,
-        });
-      }
-    }
-    log.debug('Inserting signatures success ' + transaction.hash);
+    // const signatures = transaction.signatures;
+    // log.debug('Inserting signatures for ' + transaction.hash);
+    // for (const signatureList of signatures) {
+    //   for (const signature of signatureList) {
+    //     await this.sql('signatures').insert({
+    //       string: signature,
+    //       transaction: transaction.hash,
+    //     });
+    //   }
+    // }
+    // log.debug('Inserting signatures success ' + transaction.hash);
 
     const version = transaction.version;
     const amount = transaction.amount;
@@ -83,9 +104,14 @@ export class Database extends EventEmitter {
     const size = transaction.size;
     const unlockTime = transaction.unlockTime;
     const rawTx = transaction.toString();
-    const block = blockHash;
+    const block = blockData.hash;
 
-    log.debug('Inserting transaction data for ' + transaction.hash);
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT TRANSACTION',
+      chalk.yellow.bold('SUBMIT')
+    );
     await this.sql('transactions').insert({
       amount,
       block,
@@ -100,11 +126,21 @@ export class Database extends EventEmitter {
       unlockTime,
       version,
     });
-    log.debug('Inserting transaction data success ' + transaction.hash);
+    log.debug(
+      blockData.height,
+      chalk.blue(transaction.hash.slice(0, 10)),
+      'INSERT TRANSACTION',
+      chalk.green.bold('SUCCESS')
+    );
   }
 
   public async storeBlock(block: Block): Promise<void> {
-    log.debug('Inserting transaction data for ' + block.hash);
+    log.debug(
+      block.height,
+      chalk.blue(block.hash.slice(0, 10)),
+      'INSERT BLOCK',
+      chalk.yellow.bold('SUBMIT')
+    );
     const raw_block = block.toString();
     const hash = block.hash;
     const height = block.height;
@@ -128,7 +164,12 @@ export class Database extends EventEmitter {
       size,
       timestamp,
     });
-    log.debug('Inserting block data success ' + block.hash);
+    log.debug(
+      block.height,
+      chalk.blue(block.hash.slice(0, 10)),
+      'INSERT BLOCK',
+      chalk.green.bold('SUCCESS')
+    );
   }
 
   private async init(): Promise<void> {
@@ -193,16 +234,6 @@ export class Database extends EventEmitter {
           "string" TEXT,
           "transaction" TEXT,
           "type" INTEGER
-        );`
-      );
-    }
-
-    if (!tableNames.includes('signatures')) {
-      await this.sql.raw(
-        `CREATE TABLE "signatures" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "string" TEXT UNIQUE,
-          "transaction" TEXT
         );`
       );
     }
