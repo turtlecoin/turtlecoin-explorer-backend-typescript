@@ -65,7 +65,10 @@ export class Monitor extends EventEmitter {
         blockHashCheckpoints: this.getCheckpoints(),
       });
 
+      log.info(res);
+
       for (const item of res.data.items) {
+        log.info(item);
         const block = Block.from(item.block);
         await db.storeBlock(block);
 

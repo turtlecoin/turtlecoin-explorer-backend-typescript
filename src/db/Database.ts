@@ -5,6 +5,8 @@ import log from 'electron-log';
 import { EventEmitter } from 'events';
 import knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
+import { prefix, suffix } from '../constants/karaiConstants';
+import { hexToIp, hexToPort } from '../utils/hexHelpers';
 
 export class Database extends EventEmitter {
   public ready: boolean;
@@ -81,17 +83,9 @@ export class Database extends EventEmitter {
       chalk.green.bold('SUCCESS')
     );
 
-    // const signatures = transaction.signatures;
-    // log.debug('Inserting signatures for ' + transaction.hash);
-    // for (const signatureList of signatures) {
-    //   for (const signature of signatureList) {
-    //     await this.sql('signatures').insert({
-    //       string: signature,
-    //       transaction: transaction.hash,
-    //     });
-    //   }
-    // }
-    // log.debug('Inserting signatures success ' + transaction.hash);
+    if (this.isPointer(transaction.extra)) {
+      this.storePointer(transaction, blockData);
+    }
 
     const version = transaction.version;
     const amount = transaction.amount;
@@ -172,6 +166,40 @@ export class Database extends EventEmitter {
     }
   }
 
+  public async storePointer(transactionData: Transaction, blockData: Block) {
+    log.debug(
+      blockData.height,
+      chalk.blue(transactionData.hash.slice(0, 10)),
+      'INSERT POINTER',
+      chalk.yellow.bold('SUBMIT')
+    );
+    const peer = transactionData.extra
+      .toString('hex')
+      .split(prefix)[1]
+      .substring(0, 12);
+    const hex = prefix + peer + suffix;
+    const peerIP = hexToIp(peer.substring(0, 8));
+    const port = hexToPort(peer.substring(8, 12));
+    const ascii = `ktx://${peerIP}:${port.toString()}`;
+    const block = blockData.hash;
+    const timestamp = blockData.timestamp.getTime();
+    const transaction = transactionData.hash;
+
+    await this.sql('pointers').insert({
+      ascii,
+      block,
+      hex,
+      timestamp,
+      transaction,
+    });
+    log.debug(
+      blockData.height,
+      chalk.blue(transactionData.hash.slice(0, 10)),
+      'INSERT POINTER',
+      chalk.green.bold('SUCCESS')
+    );
+  }
+
   public async storeBlock(block: Block): Promise<void> {
     log.debug(
       block.height,
@@ -210,6 +238,10 @@ export class Database extends EventEmitter {
       'INSERT BLOCK',
       chalk.green.bold('SUCCESS')
     );
+  }
+
+  private isPointer(txExtra: Buffer) {
+    return txExtra.toString('hex').includes(prefix);
   }
 
   private async init(): Promise<void> {
