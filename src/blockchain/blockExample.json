@@ -1,0 +1,184 @@
+{
+  "m_majorVersion": 3,
+  "m_minorVersion": 0,
+  "m_timestamp": "2017-12-09T08:21:52.000Z",
+  "m_previousBlockHash": "f9e8cafb1340b528763ca3f9ca50263c32c31c4660c782a64c440877dca344cc",
+  "m_parentBlock": {
+    "majorVersion": 0,
+    "minorVersion": 0,
+    "previousBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "transactionCount": 1,
+    "baseTransactionBranch": [],
+    "minerTransaction": {
+      "version": 0,
+      "inputs": [],
+      "outputs": [],
+      "signatures": [],
+      "ignoredField": 0,
+      "transactionKeys": {},
+      "m_unlockTime": "0",
+      "m_rawExtra": {
+        "type": "Buffer",
+        "data": [
+          3,
+          33,
+          0,
+          47,
+          244,
+          134,
+          156,
+          27,
+          174,
+          98,
+          164,
+          244,
+          250,
+          206,
+          82,
+          220,
+          63,
+          97,
+          134,
+          200,
+          133,
+          125,
+          185,
+          246,
+          77,
+          0,
+          46,
+          142,
+          186,
+          95,
+          197,
+          6,
+          62,
+          255,
+          24
+        ]
+      },
+      "m_readonly": true,
+      "m_extra": [
+        {
+          "m_tag": 3,
+          "m_depth": 0,
+          "m_merkleRoot": "2ff4869c1bae62a4f4face52dc3f6186c8857db9f64d002e8eba5fc5063eff18"
+        }
+      ],
+      "m_cached": {
+        "prefix": "",
+        "prefixHash": "",
+        "blob": "",
+        "hash": ""
+      }
+    },
+    "blockchainBranch": []
+  },
+  "m_nonce": 747255746,
+  "m_minerTransaction": {
+    "version": 1,
+    "inputs": [
+      {
+        "m_type": 255,
+        "m_blockIndex": 99
+      }
+    ],
+    "outputs": [
+      {
+        "m_type": 2,
+        "m_amount": "3",
+        "m_key": "054ed019fa2a5d9be3ddab4bd7453226e5eeb0ff8d058a0f5e52ee9458fc0ae7"
+      },
+      {
+        "m_type": 2,
+        "m_amount": "20",
+        "m_key": "bf65910156abb6e932942902f86a9d1e9fc5d0cdf701154a72c9a6ac2b1f31e1"
+      },
+      {
+        "m_type": 2,
+        "m_amount": "200",
+        "m_key": "6e09272712d36b5996970ffc9b8d718e75412cd805e70e762742d7842acc480e"
+      },
+      {
+        "m_type": 2,
+        "m_amount": "80000",
+        "m_key": "a13d62fd6f6528eee8f34daba2518a95321c6d61425dd75c330393d9aa49a403"
+      },
+      {
+        "m_type": 2,
+        "m_amount": "900000",
+        "m_key": "8e584903418a4b12e330bf046b681ec84537edb76928c842e5dc762d3d4a9f8a"
+      },
+      {
+        "m_type": 2,
+        "m_amount": "2000000",
+        "m_key": "a42c13f26713feda2d55e7a53d591b54de8daab6e4aa2afb04719284a883b5cf"
+      }
+    ],
+    "signatures": [],
+    "ignoredField": 0,
+    "transactionKeys": {
+      "m_publicKey": "99bcf9ff4a5b5ab90b8570147a06513d272f58b6e7301c70498957f572331b6b"
+    },
+    "m_unlockTime": "139",
+    "m_rawExtra": {
+      "type": "Buffer",
+      "data": [
+        1,
+        153,
+        188,
+        249,
+        255,
+        74,
+        91,
+        90,
+        185,
+        11,
+        133,
+        112,
+        20,
+        122,
+        6,
+        81,
+        61,
+        39,
+        47,
+        88,
+        182,
+        231,
+        48,
+        28,
+        112,
+        73,
+        137,
+        87,
+        245,
+        114,
+        51,
+        27,
+        107
+      ]
+    },
+    "m_readonly": true,
+    "m_extra": [
+      {
+        "m_tag": 1,
+        "m_publicKey": "99bcf9ff4a5b5ab90b8570147a06513d272f58b6e7301c70498957f572331b6b"
+      }
+    ],
+    "m_cached": {
+      "prefix": "",
+      "prefixHash": "",
+      "blob": "",
+      "hash": ""
+    }
+  },
+  "m_transactions": [],
+  "m_activateParentBlockVersion": 2,
+  "m_cache": {
+    "blob": "",
+    "hash": "",
+    "longBlob": "",
+    "longHash": ""
+  }
+}
