@@ -64,7 +64,6 @@ export class Monitor extends EventEmitter {
       const res = await ax.post(this.daemonURI + '/getrawblocks', {
         blockHashCheckpoints: this.getCheckpoints(),
       });
-      console.log(res);
       for (const item of res.data.items) {
         if (inputTaker.killswitch) {
           log.info('Thanks for stopping by!');
