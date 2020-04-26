@@ -64,11 +64,7 @@ export class Monitor extends EventEmitter {
       const res = await ax.post(this.daemonURI + '/getrawblocks', {
         blockHashCheckpoints: this.getCheckpoints(),
       });
-
-      log.info(res);
-
       for (const item of res.data.items) {
-        log.info(item);
         const block = Block.from(item.block);
         await db.storeBlock(block);
 

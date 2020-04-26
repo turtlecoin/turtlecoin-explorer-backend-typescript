@@ -48,6 +48,6 @@
     "knex": "^0.21.0",
     "morgan": "^1.10.0",
     "sqlite3": "^4.1.1",
-    "turtlecoin-utils": "^2.0.0"
+    "turtlecoin-utils": "https://github.com/turtlecoin/turtlecoin-utils#0e5f3277c00dd8b4727c7451024948024bd7fe78"
   }
 }
