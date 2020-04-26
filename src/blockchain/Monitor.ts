@@ -40,8 +40,6 @@ export class Monitor extends EventEmitter {
   }
 
   private async init() {
-    log.info(db.ready);
-
     let timeout = 1;
     while (!db.ready) {
       await sleep(timeout);

@@ -61,16 +61,16 @@ export class Database extends EventEmitter {
     }
 
     const signatures = transaction.signatures;
+    log.debug('Inserting signatures for ' + transaction.hash);
     for (const signatureList of signatures) {
-      log.debug('Inserting signatures for ' + transaction.hash);
       for (const signature of signatureList) {
         await this.sql('signatures').insert({
           string: signature,
           transaction: transaction.hash,
         });
       }
-      log.debug('Inserting signatures success ' + transaction.hash);
     }
+    log.debug('Inserting signatures success ' + transaction.hash);
 
     const version = transaction.version;
     const amount = transaction.amount;
