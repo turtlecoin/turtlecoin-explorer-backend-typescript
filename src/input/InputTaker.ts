@@ -15,16 +15,19 @@ export class InputTaker extends EventEmitter {
     });
     this.killswitch = false;
     this.handleCommand = this.handleCommand.bind(this);
+    this.shutdown = this.shutdown.bind(this);
     this.init();
   }
 
   private init() {
-    this.rl.on('SIGINT', () => {
-      this.rl.close();
-      this.killswitch = true;
-    });
-
+    this.rl.on('SIGINT', this.shutdown);
+    process.on('SIGINT', this.shutdown);
     this.rl.question('', this.handleCommand);
+  }
+
+  private shutdown() {
+    this.rl.close();
+    this.killswitch = true;
   }
 
   private handleCommand(command: string) {
