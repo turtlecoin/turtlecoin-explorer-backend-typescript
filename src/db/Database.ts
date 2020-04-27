@@ -195,19 +195,23 @@ export class Database extends EventEmitter {
     const timestamp = blockData.timestamp.getTime();
     const transaction = transactionData.hash;
 
-    await this.sql('pointers').insert({
+    const sanitizedPointer = {
       ascii,
       block,
       hex,
       timestamp,
       transaction,
-    });
+    };
+
+    await this.sql('pointers').insert(sanitizedPointer);
     log.debug(
       blockData.height,
       chalk.blue(transactionData.hash.slice(0, 10)),
       'INSERT POINTER',
       chalk.green.bold('SUCCESS')
     );
+
+    wss.broadcast('pointer', sanitizedPointer);
   }
 
   public async storeBlock(block: Block): Promise<void> {
