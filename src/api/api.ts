@@ -38,7 +38,7 @@ export class API {
       });
     });
 
-    this.app.get('/pointer/:hex', async (req, res) => {
+    this.app.get('/pointers/:hex', async (req, res) => {
       const { hex } = req.params;
 
       const data = await db
@@ -68,7 +68,7 @@ export class API {
       });
     });
 
-    this.app.get('/block/:hash', async (req, res) => {
+    this.app.get('/blocks/:hash', async (req, res) => {
       const { hash } = req.params;
 
       const data = await db
@@ -98,7 +98,7 @@ export class API {
       });
     });
 
-    this.app.get('/transaction/:hash', async (req, res) => {
+    this.app.get('/transactions/:hash', async (req, res) => {
       const { hash } = req.params;
 
       const data = await db
