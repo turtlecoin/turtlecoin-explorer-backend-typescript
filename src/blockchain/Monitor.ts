@@ -46,7 +46,7 @@ export class Monitor extends EventEmitter {
       timeout *= 2;
     }
 
-    await db.cleanup();
+    await db.cleanup(2);
 
     this.checkpoints = (
       await db

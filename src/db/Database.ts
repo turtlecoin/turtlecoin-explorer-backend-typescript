@@ -128,41 +128,45 @@ export class Database extends EventEmitter {
     );
   }
 
-  public async cleanup(): Promise<void> {
-    const blockQuery = await this.sql('blocks')
-      .select('hash')
-      .orderBy('height', 'desc')
-      .limit(1);
-    if (blockQuery.length === 0) {
-      return;
-    }
-
-    const topBlock = blockQuery.map((row) => row.hash)[0];
-
-    await this.sql('blocks')
-      .where({ hash: topBlock })
-      .del();
-
-    const transactionQuery = await this.sql('transactions')
-      .select('hash')
-      .where({ block: topBlock });
-
-    let transactions = [];
-    if (transactionQuery.length > 0) {
-      transactions = transactionQuery.map((row) => row.hash);
-    }
-
-    await this.sql('transactions')
-      .where({ block: topBlock })
-      .del();
-
-    const tables = ['inputs', 'outputs', 'pointers'];
-    for (const transaction of transactions) {
-      for (const table of tables) {
-        await this.sql(table)
-          .where({ transaction })
-          .del();
+  public async cleanup(blockCount: number = 1): Promise<void> {
+    let i = 0;
+    while (i < blockCount) {
+      const blockQuery = await this.sql('blocks')
+        .select('hash')
+        .orderBy('height', 'desc')
+        .limit(1);
+      if (blockQuery.length === 0) {
+        return;
       }
+
+      const topBlock = blockQuery.map((row) => row.hash)[0];
+
+      await this.sql('blocks')
+        .where({ hash: topBlock })
+        .del();
+
+      const transactionQuery = await this.sql('transactions')
+        .select('hash')
+        .where({ block: topBlock });
+
+      let transactions = [];
+      if (transactionQuery.length > 0) {
+        transactions = transactionQuery.map((row) => row.hash);
+      }
+
+      await this.sql('transactions')
+        .where({ block: topBlock })
+        .del();
+
+      const tables = ['inputs', 'outputs', 'pointers'];
+      for (const transaction of transactions) {
+        for (const table of tables) {
+          await this.sql(table)
+            .where({ transaction })
+            .del();
+        }
+      }
+      i++;
     }
   }
 
