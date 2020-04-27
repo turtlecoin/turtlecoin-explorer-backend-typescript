@@ -5,6 +5,7 @@ import log from 'electron-log';
 import { EventEmitter } from 'events';
 import knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
+import { wss } from '..';
 import { prefix, suffix } from '../constants/karaiConstants';
 import { hexToIp, hexToPort } from '../utils/hexHelpers';
 
@@ -106,7 +107,8 @@ export class Database extends EventEmitter {
       'INSERT TRANSACTION',
       chalk.yellow.bold('SUBMIT')
     );
-    await this.sql('transactions').insert({
+
+    const sanitizedTx = {
       amount,
       block,
       extra,
@@ -119,13 +121,17 @@ export class Database extends EventEmitter {
       size,
       unlockTime,
       version,
-    });
+    };
+
+    await this.sql('transactions').insert(sanitizedTx);
     log.debug(
       blockData.height,
       chalk.blue(transaction.hash.slice(0, 10)),
       'INSERT TRANSACTION',
       chalk.green.bold('SUCCESS')
     );
+
+    wss.broadcast('tx', sanitizedTx);
   }
 
   public async cleanup(blockCount: number = 1): Promise<void> {
@@ -224,7 +230,7 @@ export class Database extends EventEmitter {
 
     await this.storeTransaction(block.minerTransaction, block);
 
-    await this.sql('blocks').insert({
+    const sanitizedBlock = {
       activate_parent_block_version,
       hash,
       height,
@@ -235,13 +241,17 @@ export class Database extends EventEmitter {
       raw_block,
       size,
       timestamp,
-    });
+    };
+
+    await this.sql('blocks').insert(sanitizedBlock);
     log.debug(
       block.height,
       chalk.blue(block.hash.slice(0, 10)),
       'INSERT BLOCK',
       chalk.green.bold('SUCCESS')
     );
+
+    wss.broadcast('block', sanitizedBlock);
   }
 
   private isPointer(txExtra: Buffer) {
