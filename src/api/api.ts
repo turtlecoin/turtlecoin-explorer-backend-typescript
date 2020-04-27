@@ -166,7 +166,7 @@ export class API {
 
       const query = decodeURIComponent(req.query.query as string);
 
-      const data = await db
+      const pointers = await db
         .sql('pointers')
         .select()
         .where({ id: query })
@@ -175,6 +175,23 @@ export class API {
         .orWhere({ block: query })
         .orWhere({ transaction: query })
         .orWhere({ timestamp: query });
+
+      const blocks = await db
+        .sql('blocks')
+        .select()
+        .where({ hash: query })
+        .orWhere({ height: query })
+        .orWhere({ nonce: query })
+        .orWhere({ timestamp: query });
+
+      const transactions = await db
+        .sql('transactions')
+        .select()
+        .where({ hash: query })
+        .orWhere({ publicKey: query })
+        .orWhere({ paymentID: query });
+
+      const data = [pointers, blocks, transactions];
 
       res.json({
         data,
