@@ -78,11 +78,21 @@ export class Monitor extends EventEmitter {
           process.exit(0);
         }
         const block = Block.from(item.block);
-        await db.storeBlock(block);
+        try {
+          await db.storeBlock(block);
+        } catch (error) {
+          db.cleanup();
+          continue;
+        }
 
         for (const tx of item.transactions) {
           const transaction: Transaction = Transaction.from(tx);
-          await db.storeTransaction(transaction, block);
+          try {
+            await db.storeTransaction(transaction, block);
+          } catch (error) {
+            db.cleanup();
+            continue;
+          }
         }
 
         this.addCheckpoint(block.hash);
