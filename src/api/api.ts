@@ -26,16 +26,12 @@ export class API {
       })
     );
 
-    this.app.get('/pointers', async (req, res) => {
-      const offset = req.query.offset ? Number(req.query.offset) : 0;
-
-      const data = await db
-        .sql('pointers')
-        .select()
-        .orderBy('id', 'desc')
-        .offset(offset)
-        .limit(10);
-
+    this.app.get('/status', async (req, res) => {
+      const data = {
+        networkHeight: monitor.getNetworkHeight(),
+        syncHeight: monitor.getSyncHeight(),
+        synced: monitor.synced,
+      };
       res.json({
         data,
         status: 'OK',
@@ -56,12 +52,104 @@ export class API {
       });
     });
 
-    this.app.get('/status', async (req, res) => {
-      const data = {
-        networkHeight: monitor.getNetworkHeight(),
-        syncHeight: monitor.getSyncHeight(),
-        synced: monitor.synced,
-      };
+    this.app.get('/pointers', async (req, res) => {
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+
+      const data = await db
+        .sql('pointers')
+        .select()
+        .orderBy('id', 'desc')
+        .offset(offset)
+        .limit(10);
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/block/:hash', async (req, res) => {
+      const { hash } = req.params;
+
+      const data = await db
+        .sql('blocks')
+        .select()
+        .where({ hash });
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/blocks', async (req, res) => {
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+
+      const data = await db
+        .sql('blocks')
+        .select()
+        .orderBy('height', 'desc')
+        .offset(offset)
+        .limit(10);
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/transaction/:hash', async (req, res) => {
+      const { hash } = req.params;
+
+      const data = await db
+        .sql('transactions')
+        .select()
+        .where({ hash });
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/transactions', async (req, res) => {
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+
+      const data = await db
+        .sql('transactions')
+        .select()
+        .orderBy('rowid', 'desc')
+        .offset(offset)
+        .limit(10);
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/inputs/:hash', async (req, res) => {
+      const { hash } = req.params;
+
+      const data = await db
+        .sql('inputs')
+        .select()
+        .where({ transaction: hash });
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
+    this.app.get('/outputs/:hash', async (req, res) => {
+      const { hash } = req.params;
+
+      const data = await db
+        .sql('outputs')
+        .select()
+        .where({ transaction: hash });
+
       res.json({
         data,
         status: 'OK',

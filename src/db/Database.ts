@@ -291,8 +291,7 @@ export class Database extends EventEmitter {
     if (!tableNames.includes('inputs')) {
       await this.sql.raw(
         `CREATE TABLE "inputs" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "string" TEXT,
+          "string" TEXT UNIQUE PRIMARY KEY,
           "transaction" TEXT,
           "type" INTEGER
         );`
@@ -302,8 +301,7 @@ export class Database extends EventEmitter {
     if (!tableNames.includes('outputs')) {
       await this.sql.raw(
         `CREATE TABLE "outputs" (
-          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-          "string" TEXT,
+          "string" TEXT UNIQUE PRIMARY KEY,
           "transaction" TEXT,
           "type" INTEGER
         );`

@@ -61,9 +61,17 @@ export class Monitor extends EventEmitter {
 
   private async sync() {
     while (true) {
-      const res = await ax.post(this.daemonURI + '/getrawblocks', {
-        blockHashCheckpoints: this.getCheckpoints(),
-      });
+      let res;
+      try {
+        res = await ax.post(this.daemonURI + '/getrawblocks', {
+          blockHashCheckpoints: this.getCheckpoints(),
+        });
+      } catch (error) {
+        log.error(error);
+        await sleep(2000);
+        continue;
+      }
+
       for (const item of res.data.items) {
         if (inputTaker.killswitch) {
           log.info('Thanks for stopping by!');
