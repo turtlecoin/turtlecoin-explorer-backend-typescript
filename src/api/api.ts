@@ -5,6 +5,7 @@ import express, { Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { API_PORT, db, monitor } from '..';
+const offsetIncrement = 20;
 
 export class API {
   public app: Express = express();
@@ -60,7 +61,7 @@ export class API {
         .select()
         .orderBy('id', 'desc')
         .offset(offset)
-        .limit(10);
+        .limit(offsetIncrement);
 
       res.json({
         data,
@@ -90,7 +91,7 @@ export class API {
         .select()
         .orderBy('height', 'desc')
         .offset(offset)
-        .limit(10);
+        .limit(offsetIncrement);
 
       res.json({
         data,
@@ -120,7 +121,7 @@ export class API {
         .select()
         .orderBy('rowid', 'desc')
         .offset(offset)
-        .limit(10);
+        .limit(offsetIncrement);
 
       res.json({
         data,
