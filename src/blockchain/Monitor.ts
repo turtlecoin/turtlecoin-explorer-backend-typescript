@@ -47,13 +47,7 @@ export class Monitor extends EventEmitter {
     }
   }
 
-  private async init() {
-    let timeout = 1;
-    while (!db.ready) {
-      await sleep(timeout);
-      timeout *= 2;
-    }
-
+  private async initCheckpoints(): Promise<void> {
     this.checkpoints = (
       await db
         .sql('blocks')
@@ -61,6 +55,17 @@ export class Monitor extends EventEmitter {
         .orderBy('height', 'desc')
         .limit(100)
     ).map((row) => row.hash);
+  }
+
+  private async init() {
+    let timeout = 1;
+    while (!db.ready) {
+      await sleep(timeout);
+      timeout *= 2;
+    }
+
+    await this.initCheckpoints();
+
     this.sync();
     this.process();
   }
@@ -147,6 +152,7 @@ export class Monitor extends EventEmitter {
         });
       } catch (error) {
         this.blockStorage = [];
+        await this.initCheckpoints();
         log.error(error);
         await sleep(2000);
       }
