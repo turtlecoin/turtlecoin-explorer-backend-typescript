@@ -78,9 +78,15 @@ export class Monitor extends EventEmitter {
         try {
           await db.storeBlock(block);
         } catch (error) {
-          log.warn('Block parsing failure!');
+          if (error.errno === 19) {
+            log.warn('duplicate block height detected.');
+            // need to update the old data here
+            continue;
+          }
+          log.warn('Block parsing / storing failure!');
           log.warn(error);
           log.warn(item.block);
+
           process.exit(1);
         }
 
@@ -89,6 +95,11 @@ export class Monitor extends EventEmitter {
             const transaction: Transaction = Transaction.from(tx);
             await db.storeTransaction(transaction, block);
           } catch (error) {
+            if (error.errno === 19) {
+              log.warn('duplicate tx hash detected.');
+              // need to update the old data here
+              continue;
+            }
             log.warn('transaction parsing failure!');
             log.warn('Problematic transaction is in block ' + block.hash);
             log.warn(tx);
