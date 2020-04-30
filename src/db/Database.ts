@@ -41,7 +41,8 @@ export class Database extends EventEmitter {
   public async storeTransaction(
     transaction: Transaction,
     blockData: Block,
-    trx: knex.Transaction<any, any>
+    trx: knex.Transaction<any, any>,
+    isCoinbase: boolean = false
   ): Promise<void> {
     if (this.isPointer(transaction.extra)) {
       this.storePointer(transaction, blockData);
@@ -63,7 +64,7 @@ export class Database extends EventEmitter {
     log.debug(
       blockData.height,
       chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT TRANSACTION',
+      `INSERT ${isCoinbase ? 'COINBASE' : 'TRANSACTION'}`,
       chalk.yellow.bold('SUBMIT')
     );
 
@@ -88,7 +89,7 @@ export class Database extends EventEmitter {
     log.debug(
       blockData.height,
       chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT TRANSACTION',
+      `INSERT ${isCoinbase ? 'COINBASE' : 'TRANSACTION'}`,
       chalk.green.bold('SUCCESS')
     );
 
@@ -202,7 +203,7 @@ export class Database extends EventEmitter {
     const nonce = block.nonce;
     const activate_parent_block_version = block.activateParentBlockVersion;
 
-    await this.storeTransaction(block.minerTransaction, block, trx);
+    await this.storeTransaction(block.minerTransaction, block, trx, true);
 
     const sanitizedBlock = {
       activate_parent_block_version,

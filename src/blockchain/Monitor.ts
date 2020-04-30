@@ -82,7 +82,7 @@ export class Monitor extends EventEmitter {
       let res;
       try {
         res = await ax.post(this.daemonURI + '/getrawblocks', {
-          blockHashCheckpoints: this.getCheckpoints(),
+          blockHashCheckpoints: [this.getCheckpoints()],
         });
         try {
           const lastBlock = Block.from(
@@ -93,9 +93,7 @@ export class Monitor extends EventEmitter {
           log.error('Could not parse last block in /getrawblocks response.');
           log.error(error);
         }
-        for (const item of res.data.items) {
-          this.blockStorage.unshift(item);
-        }
+        this.blockStorage.unshift(res.data.items);
       } catch (error) {
         log.error(error);
         await sleep(2000);
@@ -119,27 +117,32 @@ export class Monitor extends EventEmitter {
       }
       try {
         await db.sql.transaction(async (trx) => {
-          const item = this.blockStorage.pop();
-          const block = Block.from(item.block);
-          try {
-            await db.storeBlock(block, trx);
-          } catch (error) {
-            log.warn('Block parsing / storing failure!');
-            log.warn(error);
-            log.warn(item.block);
-            throw error;
-          }
-
-          for (const tx of item.transactions) {
+          const items = this.blockStorage.pop();
+          for (const item of items) {
+            log.debug(item.block);
+            const block = Block.from(item.block);
+            log.debug(block.hash);
             try {
-              const transaction: Transaction = Transaction.from(tx);
-              await db.storeTransaction(transaction, block, trx);
+              await db.storeBlock(block, trx);
             } catch (error) {
-              log.warn('transaction parsing failure!');
-              log.warn('Problematic transaction is in block ' + block.hash);
-              log.warn(tx);
+              log.warn('Block parsing / storing failure!');
               log.warn(error);
+              log.warn(item.block);
               throw error;
+            }
+
+            for (const tx of item.transactions) {
+              try {
+                log.debug(tx);
+                const transaction: Transaction = Transaction.from(tx);
+                await db.storeTransaction(transaction, block, trx);
+              } catch (error) {
+                log.warn('transaction parsing failure!');
+                log.warn('Problematic transaction is in block ' + block.hash);
+                log.warn(tx);
+                log.warn(error);
+                throw error;
+              }
             }
           }
         });
