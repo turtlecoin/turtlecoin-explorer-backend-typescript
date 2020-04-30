@@ -82,7 +82,7 @@ export class Monitor extends EventEmitter {
       let res;
       try {
         res = await ax.post(this.daemonURI + '/getrawblocks', {
-          blockHashCheckpoints: [this.getCheckpoints()],
+          blockHashCheckpoints: this.getCheckpoints(),
         });
         try {
           const lastBlock = Block.from(
@@ -119,9 +119,7 @@ export class Monitor extends EventEmitter {
         await db.sql.transaction(async (trx) => {
           const items = this.blockStorage.pop();
           for (const item of items) {
-            log.debug(item.block);
             const block = Block.from(item.block);
-            log.debug(block.hash);
             try {
               await db.storeBlock(block, trx);
             } catch (error) {
