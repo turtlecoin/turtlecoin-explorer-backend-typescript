@@ -80,16 +80,18 @@ export class Monitor extends EventEmitter {
           await db.storeBlock(block);
         } catch (error) {
           log.warn(error);
-          continue;
+          log.warn(item.block);
+          process.exit(1);
         }
 
         for (const tx of item.transactions) {
-          const transaction: Transaction = Transaction.from(tx);
           try {
+            const transaction: Transaction = Transaction.from(tx);
             await db.storeTransaction(transaction, block);
           } catch (error) {
+            log.warn(tx);
             log.warn(error);
-            continue;
+            process.exit(1);
           }
         }
 
