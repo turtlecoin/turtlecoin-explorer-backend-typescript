@@ -8,16 +8,50 @@ export class WebSocketServer {
   private server: http.Server;
   private wss: WebSocket.Server;
   private connections: any[];
+  private blockHistory: any[];
+  private txHistory: any[];
+  private pointerHistory: any[];
 
   constructor() {
     this.server = http.createServer();
     this.wss = new WebSocket.Server({ server: this.server });
     this.connections = [];
+    this.blockHistory = [];
+    this.txHistory = [];
+    this.pointerHistory = [];
     this.init();
+  }
+
+  public getHistory(): any {
+    const historyObject = {
+      blockHistory: this.blockHistory,
+      txHistory: this.txHistory,
+      // tslint:disable-next-line: object-literal-sort-keys
+      pointerHistory: this.pointerHistory,
+    };
+    return historyObject;
   }
 
   public broadcast(type: string, message: object) {
     const broadcastMessage = { type, message };
+    if (type === 'block') {
+      this.blockHistory.unshift(broadcastMessage);
+      if (this.blockHistory.length > 20) {
+        this.blockHistory.pop();
+      }
+    }
+    if (type === 'tx') {
+      this.txHistory.unshift(broadcastMessage);
+      if (this.txHistory.length > 20) {
+        this.txHistory.pop();
+      }
+    }
+    if (type === 'pointer') {
+      this.pointerHistory.unshift(broadcastMessage);
+      if (this.pointerHistory.length > 20) {
+        this.pointerHistory.pop();
+      }
+    }
     for (const connection of this.connections) {
       connection.send(JSON.stringify(broadcastMessage));
     }
@@ -51,11 +85,14 @@ export class WebSocketServer {
     this.server.listen(Number(WSS_PORT), () => {
       log.info('WS: listening on port ' + WSS_PORT);
     });
+
+    setInterval(this.ping, 30000);
   }
 
   private ping() {
     for (const connection of this.connections) {
       if (connection.isAlive === false) {
+        this.connections.splice(this.connections.indexOf(connection), 1);
         return connection.terminate();
       }
 

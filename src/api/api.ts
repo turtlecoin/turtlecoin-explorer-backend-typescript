@@ -4,7 +4,7 @@ import log from 'electron-log';
 import express, { Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { API_PORT, db, monitor } from '..';
+import { API_PORT, db, monitor, wss } from '..';
 const offsetIncrement = 20;
 
 export class API {
@@ -26,18 +26,6 @@ export class API {
         },
       })
     );
-
-    this.app.get('/status', async (req, res) => {
-      const data = {
-        networkHeight: monitor.getNetworkHeight(),
-        syncHeight: monitor.getSyncHeight(),
-        synced: monitor.synced,
-      };
-      res.json({
-        data,
-        status: 'OK',
-      });
-    });
 
     this.app.get('/pointers/:hex', async (req, res) => {
       const { hex } = req.params;
@@ -86,6 +74,15 @@ export class API {
     this.app.get('/blocks', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
+      if (offset === 0) {
+        const { blockHistory } = wss.getHistory();
+        res.json({
+          data: blockHistory,
+          status: 'OK',
+        });
+        return;
+      }
+
       const data = await db
         .sql('blocks')
         .select()
@@ -116,6 +113,15 @@ export class API {
     this.app.get('/transactions', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
+      if (offset === 0) {
+        const { txHistory } = wss.getHistory();
+        res.json({
+          data: txHistory,
+          status: 'OK',
+        });
+        return;
+      }
+
       const data = await db
         .sql('transactions')
         .select()
@@ -128,34 +134,6 @@ export class API {
         status: 'OK',
       });
     });
-
-    // this.app.get('/inputs/:hash', async (req, res) => {
-    //   const { hash } = req.params;
-
-    //   const data = await db
-    //     .sql('inputs')
-    //     .select()
-    //     .where({ transaction: hash });
-
-    //   res.json({
-    //     data,
-    //     status: 'OK',
-    //   });
-    // });
-
-    // this.app.get('/outputs/:hash', async (req, res) => {
-    //   const { hash } = req.params;
-
-    //   const data = await db
-    //     .sql('outputs')
-    //     .select()
-    //     .where({ transaction: hash });
-
-    //   res.json({
-    //     data,
-    //     status: 'OK',
-    //   });
-    // });
 
     this.app.get('/search', async (req, res) => {
       if (!req.query.query) {
