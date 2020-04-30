@@ -90,7 +90,6 @@ export class WebSocketServer {
   }
 
   private ping() {
-    log.info(this.connections);
     for (const connection of this.connections) {
       if (connection.isAlive === false) {
         this.connections.splice(this.connections.indexOf(connection), 1);

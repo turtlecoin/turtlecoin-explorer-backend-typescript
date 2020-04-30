@@ -92,6 +92,7 @@ export class Monitor extends EventEmitter {
         } catch (error) {
           log.error('Could not parse last block in /getrawblocks response.');
           log.error(error);
+          continue;
         }
         this.blockStorage.unshift(res.data.items);
       } catch (error) {
