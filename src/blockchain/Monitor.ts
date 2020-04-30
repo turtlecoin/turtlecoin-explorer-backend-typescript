@@ -1,6 +1,7 @@
 import ax from 'axios';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
+import Knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
 import { DAEMON_URI, db, inputTaker, rewindBlocks } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
@@ -58,7 +59,7 @@ export class Monitor extends EventEmitter {
 
   private async sync() {
     while (true) {
-      let res;
+      let res: any;
       try {
         res = await ax.post(this.daemonURI + '/getrawblocks', {
           blockHashCheckpoints: this.getCheckpoints(),
@@ -69,46 +70,51 @@ export class Monitor extends EventEmitter {
         continue;
       }
 
-      for (const item of res.data.items) {
-        if (inputTaker.killswitch) {
-          log.info('Thanks for stopping by!');
-          process.exit(0);
-        }
-        const block = Block.from(item.block);
-        try {
-          await db.storeBlock(block);
-        } catch (error) {
-          if (error.errno === 19) {
-            log.warn('duplicate block height detected.');
-            await db.cleanup(1);
-            continue;
-          }
-          log.warn('Block parsing / storing failure!');
-          log.warn(error);
-          log.warn(item.block);
-
-          process.exit(1);
-        }
-
-        for (const tx of item.transactions) {
-          try {
-            const transaction: Transaction = Transaction.from(tx);
-            await db.storeTransaction(transaction, block);
-          } catch (error) {
-            if (error.errno === 19) {
-              log.warn('duplicate tx hash detected.');
-              // it's probably the same transaction, no action needed
-              continue;
+      try {
+        await db.sql.transaction(async (trx) => {
+          for (const item of res.data.items) {
+            if (inputTaker.killswitch) {
+              log.info('Thanks for stopping by!');
+              process.exit(0);
             }
-            log.warn('transaction parsing failure!');
-            log.warn('Problematic transaction is in block ' + block.hash);
-            log.warn(tx);
-            log.warn(error);
-            process.exit(1);
-          }
-        }
+            const block = Block.from(item.block);
+            try {
+              await db.storeBlock(block, trx);
+            } catch (error) {
+              if (error.errno === 19) {
+                log.warn('duplicate block height detected.');
+                await db.cleanup(1);
+                continue;
+              }
+              log.warn('Block parsing / storing failure!');
+              log.warn(error);
+              log.warn(item.block);
 
-        this.addCheckpoint(block.hash);
+              process.exit(1);
+            }
+
+            for (const tx of item.transactions) {
+              try {
+                const transaction: Transaction = Transaction.from(tx);
+                await db.storeTransaction(transaction, block, trx);
+              } catch (error) {
+                if (error.errno === 19) {
+                  log.warn('duplicate tx hash detected.');
+                  // it's probably the same transaction, no action needed
+                  continue;
+                }
+                log.warn('transaction parsing failure!');
+                log.warn('Problematic transaction is in block ' + block.hash);
+                log.warn(tx);
+                log.warn(error);
+                process.exit(1);
+              }
+            }
+            this.addCheckpoint(block.hash);
+          }
+        });
+      } catch (error) {
+        log.error(error);
       }
     }
   }

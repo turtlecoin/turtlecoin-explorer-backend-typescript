@@ -40,7 +40,8 @@ export class Database extends EventEmitter {
 
   public async storeTransaction(
     transaction: Transaction,
-    blockData: Block
+    blockData: Block,
+    trx: knex.Transaction<any, any>
   ): Promise<void> {
     if (this.isPointer(transaction.extra)) {
       this.storePointer(transaction, blockData);
@@ -81,7 +82,9 @@ export class Database extends EventEmitter {
       version,
     };
 
-    await this.sql('transactions').insert(sanitizedTx);
+    await this.sql('transactions')
+      .insert(sanitizedTx)
+      .transacting(trx);
     log.debug(
       blockData.height,
       chalk.blue(transaction.hash.slice(0, 10)),
@@ -178,7 +181,10 @@ export class Database extends EventEmitter {
     wss.broadcast('pointer', sanitizedPointer);
   }
 
-  public async storeBlock(block: Block): Promise<void> {
+  public async storeBlock(
+    block: Block,
+    trx: knex.Transaction<any, any>
+  ): Promise<void> {
     log.debug(
       block.height,
       chalk.blue(block.hash.slice(0, 10)),
@@ -196,7 +202,7 @@ export class Database extends EventEmitter {
     const nonce = block.nonce;
     const activate_parent_block_version = block.activateParentBlockVersion;
 
-    await this.storeTransaction(block.minerTransaction, block);
+    await this.storeTransaction(block.minerTransaction, block, trx);
 
     const sanitizedBlock = {
       activate_parent_block_version,
@@ -211,7 +217,9 @@ export class Database extends EventEmitter {
       timestamp,
     };
 
-    await this.sql('blocks').insert(sanitizedBlock);
+    await this.sql('blocks')
+      .insert(sanitizedBlock)
+      .transacting(trx);
     log.debug(
       block.height,
       chalk.blue(block.hash.slice(0, 10)),
@@ -269,26 +277,6 @@ export class Database extends EventEmitter {
         );`
       );
     }
-
-    // if (!tableNames.includes('inputs')) {
-    //   await this.sql.raw(
-    //     `CREATE TABLE "inputs" (
-    //       "string" TEXT UNIQUE PRIMARY KEY,
-    //       "transaction" TEXT,
-    //       "type" INTEGER
-    //     );`
-    //   );
-    // }
-
-    // if (!tableNames.includes('outputs')) {
-    //   await this.sql.raw(
-    //     `CREATE TABLE "outputs" (
-    //       "string" TEXT UNIQUE PRIMARY KEY,
-    //       "transaction" TEXT,
-    //       "type" INTEGER
-    //     );`
-    //   );
-    // }
 
     if (!tableNames.includes('pointers')) {
       await this.sql.raw(
