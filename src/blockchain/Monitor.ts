@@ -46,8 +46,6 @@ export class Monitor extends EventEmitter {
       timeout *= 2;
     }
 
-    await db.cleanup(2);
-
     this.checkpoints = (
       await db
         .sql('blocks')
@@ -81,7 +79,7 @@ export class Monitor extends EventEmitter {
         try {
           await db.storeBlock(block);
         } catch (error) {
-          db.cleanup();
+          log.warn(error);
           continue;
         }
 
@@ -90,7 +88,7 @@ export class Monitor extends EventEmitter {
           try {
             await db.storeTransaction(transaction, block);
           } catch (error) {
-            db.cleanup();
+            log.warn(error);
             continue;
           }
         }

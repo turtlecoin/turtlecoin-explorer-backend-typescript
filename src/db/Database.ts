@@ -135,6 +135,7 @@ export class Database extends EventEmitter {
   }
 
   public async cleanup(blockCount: number = 1): Promise<void> {
+    log.debug('Cleaning up block...');
     let i = 0;
     while (i < blockCount) {
       const blockQuery = await this.sql('blocks')
@@ -146,6 +147,8 @@ export class Database extends EventEmitter {
       }
 
       const topBlock = blockQuery.map((row) => row.hash)[0];
+
+      log.debug('Deleting block ' + topBlock);
 
       await this.sql('blocks')
         .where({ hash: topBlock })
@@ -172,6 +175,8 @@ export class Database extends EventEmitter {
             .del();
         }
       }
+
+      log.debug('Block delete success.');
       i++;
     }
   }
