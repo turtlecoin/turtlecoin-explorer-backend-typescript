@@ -50,7 +50,7 @@
     "morgan": "^1.10.0",
     "object-sizeof": "^1.6.0",
     "sqlite3": "^4.1.1",
-    "turtlecoin-utils": "https://github.com/turtlecoin/turtlecoin-utils#7c0fdd8c116d22bbb5f644b9a7d889fd78104ac3",
+    "turtlecoin-utils": "https://github.com/turtlecoin/turtlecoin-utils#9b882864beebd5eab1cb83ebe1fe1da4ed5a67ed",
     "ws": "^7.2.5"
   }
 }

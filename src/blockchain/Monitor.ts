@@ -131,7 +131,6 @@ export class Monitor extends EventEmitter {
 
             for (const tx of item.transactions) {
               try {
-                log.debug(tx);
                 const transaction: Transaction = Transaction.from(tx);
                 await db.storeTransaction(transaction, block, trx);
               } catch (error) {

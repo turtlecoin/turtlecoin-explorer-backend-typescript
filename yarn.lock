@@ -3568,9 +3568,9 @@ turtlecoin-mnemonics@^0.0.6:
     crc "^3.8.0"
     get-random-values "^1.2.0"
 
-"turtlecoin-utils@https://github.com/turtlecoin/turtlecoin-utils#7c0fdd8c116d22bbb5f644b9a7d889fd78104ac3":
+"turtlecoin-utils@https://github.com/turtlecoin/turtlecoin-utils#9b882864beebd5eab1cb83ebe1fe1da4ed5a67ed":
   version "2.0.0"
-  resolved "https://github.com/turtlecoin/turtlecoin-utils#7c0fdd8c116d22bbb5f644b9a7d889fd78104ac3"
+  resolved "https://github.com/turtlecoin/turtlecoin-utils#9b882864beebd5eab1cb83ebe1fe1da4ed5a67ed"
   dependencies:
     aes-js "^3.1.2"
     big-integer "^1.6.48"
