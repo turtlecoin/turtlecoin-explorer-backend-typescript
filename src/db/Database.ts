@@ -42,51 +42,9 @@ export class Database extends EventEmitter {
     transaction: Transaction,
     blockData: Block
   ): Promise<void> {
-    // const inputs = transaction.inputs;
-    // log.debug(
-    //   blockData.height,
-    //   chalk.blue(transaction.hash.slice(0, 10)),
-    //   'INSERT INPUTS',
-    //   chalk.yellow.bold('SUBMIT')
-    // );
-    // for (const input of inputs) {
-    //   await this.sql('inputs').insert({
-    //     string: input.toString(),
-    //     transaction: transaction.hash,
-    //     type: input.type,
-    //   });
-    // }
-    // log.debug(
-    //   blockData.height,
-    //   chalk.blue(transaction.hash.slice(0, 10)),
-    //   'INSERT INPUTS',
-    //   chalk.green.bold('SUCCESS')
-    // );
-
-    // const outputs = transaction.outputs;
-    // log.debug(
-    //   blockData.height,
-    //   chalk.blue(transaction.hash.slice(0, 10)),
-    //   'INSERT OUTPUTS',
-    //   chalk.yellow.bold('SUBMIT')
-    // );
-    // for (const output of outputs) {
-    //   await this.sql('inputs').insert({
-    //     string: output.toString(),
-    //     transaction: transaction.hash,
-    //     type: output.type,
-    //   });
-    // }
-    // log.debug(
-    //   blockData.height,
-    //   chalk.blue(transaction.hash.slice(0, 10)),
-    //   'INSERT OUTPUTS',
-    //   chalk.green.bold('SUCCESS')
-    // );
-
-    // if (this.isPointer(transaction.extra)) {
-    //   this.storePointer(transaction, blockData);
-    // }
+    if (this.isPointer(transaction.extra)) {
+      this.storePointer(transaction, blockData);
+    }
 
     const version = transaction.version;
     const amount = transaction.amount;
