@@ -48,6 +48,7 @@
     "helmet": "^3.22.0",
     "knex": "^0.21.0",
     "morgan": "^1.10.0",
+    "object-sizeof": "^1.6.0",
     "sqlite3": "^4.1.1",
     "turtlecoin-utils": "https://github.com/turtlecoin/turtlecoin-utils#7c0fdd8c116d22bbb5f644b9a7d889fd78104ac3",
     "ws": "^7.2.5"

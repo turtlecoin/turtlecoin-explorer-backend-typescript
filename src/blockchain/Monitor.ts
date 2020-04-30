@@ -1,22 +1,27 @@
 import ax from 'axios';
+import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
-import Knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
-import { DAEMON_URI, db, inputTaker, rewindBlocks } from '..';
+import { DAEMON_URI, db, inputTaker } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
 import { sleep } from '../utils/sleep';
+// tslint:disable-next-line: no-var-requires
+const sizeof = require('object-sizeof');
+console.log(sizeof({ abc: 'def' }));
 
 export class Monitor extends EventEmitter {
   public synced: boolean;
   private daemonURI: string;
   private checkpoints: string[];
+  private blockStorage: any[];
 
   constructor() {
     super();
     this.daemonURI = DAEMON_URI!;
     this.synced = false;
     this.checkpoints = [turtleGenesisBlock];
+    this.blockStorage = [];
     this.init();
   }
 
@@ -55,62 +60,83 @@ export class Monitor extends EventEmitter {
         .limit(100)
     ).map((row) => row.hash);
     this.sync();
+    this.process();
   }
 
   private async sync() {
     while (true) {
-      let res: any;
+      const storageSize = sizeof(this.blockStorage) / 1048576;
+      if (storageSize < 50) {
+        log.debug(
+          chalk.green.bold(
+            `Stored block size: ${storageSize.toFixed(2)} Mb, fetching more`
+          )
+        );
+      } else {
+        await sleep(2000);
+        continue;
+      }
+
+      let res;
       try {
         res = await ax.post(this.daemonURI + '/getrawblocks', {
           blockHashCheckpoints: this.getCheckpoints(),
         });
+        try {
+          const lastBlock = Block.from(
+            res.data.items[res.data.items.length - 1].block
+          );
+          this.addCheckpoint(lastBlock.hash);
+        } catch (error) {
+          log.error('Could not parse last block in /getrawblocks response.');
+          log.error(error);
+        }
+        for (const item of res.data.items) {
+          this.blockStorage.unshift(item);
+        }
       } catch (error) {
         log.error(error);
         await sleep(2000);
         continue;
       }
+    }
+  }
 
+  private async process() {
+    while (true) {
+      let timeout = 1;
+      while (this.blockStorage.length === 0) {
+        await sleep(timeout);
+        timeout *= 2;
+      }
       try {
         await db.sql.transaction(async (trx) => {
-          for (const item of res.data.items) {
-            if (inputTaker.killswitch) {
-              log.info('Thanks for stopping by!');
-              process.exit(0);
-            }
-            const block = Block.from(item.block);
+          if (inputTaker.killswitch) {
+            log.info('Thanks for stopping by!');
+            process.exit(0);
+          }
+          const item = this.blockStorage.pop();
+          const block = Block.from(item.block);
+          try {
+            await db.storeBlock(block, trx);
+          } catch (error) {
+            log.warn('Block parsing / storing failure!');
+            log.warn(error);
+            log.warn(item.block);
+            throw error;
+          }
+
+          for (const tx of item.transactions) {
             try {
-              await db.storeBlock(block, trx);
+              const transaction: Transaction = Transaction.from(tx);
+              await db.storeTransaction(transaction, block, trx);
             } catch (error) {
-              if (error.errno === 19) {
-                log.warn('duplicate block height detected.');
-                await db.cleanup(1);
-                continue;
-              }
-              log.warn('Block parsing / storing failure!');
+              log.warn('transaction parsing failure!');
+              log.warn('Problematic transaction is in block ' + block.hash);
+              log.warn(tx);
               log.warn(error);
-              log.warn(item.block);
-
-              process.exit(1);
+              throw error;
             }
-
-            for (const tx of item.transactions) {
-              try {
-                const transaction: Transaction = Transaction.from(tx);
-                await db.storeTransaction(transaction, block, trx);
-              } catch (error) {
-                if (error.errno === 19) {
-                  log.warn('duplicate tx hash detected.');
-                  // it's probably the same transaction, no action needed
-                  continue;
-                }
-                log.warn('transaction parsing failure!');
-                log.warn('Problematic transaction is in block ' + block.hash);
-                log.warn(tx);
-                log.warn(error);
-                process.exit(1);
-              }
-            }
-            this.addCheckpoint(block.hash);
           }
         });
       } catch (error) {

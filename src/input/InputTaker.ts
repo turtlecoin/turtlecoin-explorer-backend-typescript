@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import readline, { createInterface } from 'readline';
@@ -26,6 +27,11 @@ export class InputTaker extends EventEmitter {
   }
 
   private shutdown() {
+    log.error(
+      chalk.red.bold(
+        'SIGINT detected. Please only ctrl+C once or you risk database corruption.'
+      )
+    );
     this.rl.close();
     this.killswitch = true;
   }
