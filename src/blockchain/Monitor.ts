@@ -117,8 +117,9 @@ export class Monitor extends EventEmitter {
         timeout *= 2;
       }
       try {
+        let items = null;
         await db.sql.transaction(async (trx) => {
-          const items = this.blockStorage.pop();
+          items = this.blockStorage.pop();
           for (const item of items) {
             const block = Block.from(item.block);
             try {
@@ -145,6 +146,7 @@ export class Monitor extends EventEmitter {
           }
         });
       } catch (error) {
+        this.blockStorage = [];
         log.error(error);
         await sleep(2000);
       }
