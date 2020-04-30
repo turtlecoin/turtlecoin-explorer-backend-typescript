@@ -35,19 +35,19 @@ export class WebSocketServer {
   public broadcast(type: string, message: object) {
     const broadcastMessage = { type, message };
     if (type === 'block') {
-      this.blockHistory.unshift(broadcastMessage);
+      this.blockHistory.unshift(message);
       if (this.blockHistory.length > 20) {
         this.blockHistory.pop();
       }
     }
     if (type === 'tx') {
-      this.txHistory.unshift(broadcastMessage);
+      this.txHistory.unshift(message);
       if (this.txHistory.length > 20) {
         this.txHistory.pop();
       }
     }
     if (type === 'pointer') {
-      this.pointerHistory.unshift(broadcastMessage);
+      this.pointerHistory.unshift(message);
       if (this.pointerHistory.length > 20) {
         this.pointerHistory.pop();
       }
@@ -86,10 +86,11 @@ export class WebSocketServer {
       log.info('WS: listening on port ' + WSS_PORT);
     });
 
-    setInterval(this.ping, 30000);
+    setInterval(this.ping.bind(this), 30000);
   }
 
   private ping() {
+    log.info(this.connections);
     for (const connection of this.connections) {
       if (connection.isAlive === false) {
         this.connections.splice(this.connections.indexOf(connection), 1);
