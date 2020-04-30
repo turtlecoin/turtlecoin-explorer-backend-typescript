@@ -12,6 +12,7 @@ console.log(sizeof({ abc: 'def' }));
 
 export class Monitor extends EventEmitter {
   public synced: boolean;
+  public isSyncing: boolean;
   private daemonURI: string;
   private checkpoints: string[];
   private blockStorage: any[];
@@ -20,6 +21,7 @@ export class Monitor extends EventEmitter {
     super();
     this.daemonURI = DAEMON_URI!;
     this.synced = false;
+    this.isSyncing = false;
     this.checkpoints = [turtleGenesisBlock];
     this.blockStorage = [];
     this.init();
@@ -103,7 +105,13 @@ export class Monitor extends EventEmitter {
   }
 
   private async process() {
+    this.isSyncing = true;
     while (true) {
+      if (inputTaker.killswitch) {
+        log.info('Thanks for stopping by!');
+        process.exit(0);
+      }
+
       let timeout = 1;
       while (this.blockStorage.length === 0) {
         await sleep(timeout);
@@ -111,10 +119,6 @@ export class Monitor extends EventEmitter {
       }
       try {
         await db.sql.transaction(async (trx) => {
-          if (inputTaker.killswitch) {
-            log.info('Thanks for stopping by!');
-            process.exit(0);
-          }
           const item = this.blockStorage.pop();
           const block = Block.from(item.block);
           try {

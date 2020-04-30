@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import readline, { createInterface } from 'readline';
-import { db } from '..';
+import { db, monitor } from '..';
 
 export class InputTaker extends EventEmitter {
   public killswitch: boolean;
@@ -27,13 +27,18 @@ export class InputTaker extends EventEmitter {
   }
 
   private shutdown() {
-    log.error(
-      chalk.red.bold(
-        'SIGINT detected. Please only ctrl+C once or you risk database corruption.'
-      )
-    );
-    this.rl.close();
-    this.killswitch = true;
+    if (monitor.isSyncing) {
+      log.error(
+        chalk.red.bold(
+          'SIGINT detected. Please only ctrl+C once or you risk database corruption.'
+        )
+      );
+      this.rl.close();
+      this.killswitch = true;
+    } else {
+      log.info('Thanks for stopping by');
+      process.exit(0);
+    }
   }
 
   private handleCommand(command: string) {
