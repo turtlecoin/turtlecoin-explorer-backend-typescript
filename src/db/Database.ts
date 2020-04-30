@@ -42,51 +42,51 @@ export class Database extends EventEmitter {
     transaction: Transaction,
     blockData: Block
   ): Promise<void> {
-    const inputs = transaction.inputs;
-    log.debug(
-      blockData.height,
-      chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT INPUTS',
-      chalk.yellow.bold('SUBMIT')
-    );
-    for (const input of inputs) {
-      await this.sql('inputs').insert({
-        string: input.toString(),
-        transaction: transaction.hash,
-        type: input.type,
-      });
-    }
-    log.debug(
-      blockData.height,
-      chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT INPUTS',
-      chalk.green.bold('SUCCESS')
-    );
+    // const inputs = transaction.inputs;
+    // log.debug(
+    //   blockData.height,
+    //   chalk.blue(transaction.hash.slice(0, 10)),
+    //   'INSERT INPUTS',
+    //   chalk.yellow.bold('SUBMIT')
+    // );
+    // for (const input of inputs) {
+    //   await this.sql('inputs').insert({
+    //     string: input.toString(),
+    //     transaction: transaction.hash,
+    //     type: input.type,
+    //   });
+    // }
+    // log.debug(
+    //   blockData.height,
+    //   chalk.blue(transaction.hash.slice(0, 10)),
+    //   'INSERT INPUTS',
+    //   chalk.green.bold('SUCCESS')
+    // );
 
-    const outputs = transaction.outputs;
-    log.debug(
-      blockData.height,
-      chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT OUTPUTS',
-      chalk.yellow.bold('SUBMIT')
-    );
-    for (const output of outputs) {
-      await this.sql('inputs').insert({
-        string: output.toString(),
-        transaction: transaction.hash,
-        type: output.type,
-      });
-    }
-    log.debug(
-      blockData.height,
-      chalk.blue(transaction.hash.slice(0, 10)),
-      'INSERT OUTPUTS',
-      chalk.green.bold('SUCCESS')
-    );
+    // const outputs = transaction.outputs;
+    // log.debug(
+    //   blockData.height,
+    //   chalk.blue(transaction.hash.slice(0, 10)),
+    //   'INSERT OUTPUTS',
+    //   chalk.yellow.bold('SUBMIT')
+    // );
+    // for (const output of outputs) {
+    //   await this.sql('inputs').insert({
+    //     string: output.toString(),
+    //     transaction: transaction.hash,
+    //     type: output.type,
+    //   });
+    // }
+    // log.debug(
+    //   blockData.height,
+    //   chalk.blue(transaction.hash.slice(0, 10)),
+    //   'INSERT OUTPUTS',
+    //   chalk.green.bold('SUCCESS')
+    // );
 
-    if (this.isPointer(transaction.extra)) {
-      this.storePointer(transaction, blockData);
-    }
+    // if (this.isPointer(transaction.extra)) {
+    //   this.storePointer(transaction, blockData);
+    // }
 
     const version = transaction.version;
     const amount = transaction.amount;
@@ -167,7 +167,7 @@ export class Database extends EventEmitter {
         .where({ block: topBlock })
         .del();
 
-      const tables = ['inputs', 'outputs', 'pointers'];
+      const tables = ['pointers'];
       for (const transaction of transactions) {
         for (const table of tables) {
           await this.sql(table)
@@ -311,25 +311,25 @@ export class Database extends EventEmitter {
       );
     }
 
-    if (!tableNames.includes('inputs')) {
-      await this.sql.raw(
-        `CREATE TABLE "inputs" (
-          "string" TEXT UNIQUE PRIMARY KEY,
-          "transaction" TEXT,
-          "type" INTEGER
-        );`
-      );
-    }
+    // if (!tableNames.includes('inputs')) {
+    //   await this.sql.raw(
+    //     `CREATE TABLE "inputs" (
+    //       "string" TEXT UNIQUE PRIMARY KEY,
+    //       "transaction" TEXT,
+    //       "type" INTEGER
+    //     );`
+    //   );
+    // }
 
-    if (!tableNames.includes('outputs')) {
-      await this.sql.raw(
-        `CREATE TABLE "outputs" (
-          "string" TEXT UNIQUE PRIMARY KEY,
-          "transaction" TEXT,
-          "type" INTEGER
-        );`
-      );
-    }
+    // if (!tableNames.includes('outputs')) {
+    //   await this.sql.raw(
+    //     `CREATE TABLE "outputs" (
+    //       "string" TEXT UNIQUE PRIMARY KEY,
+    //       "transaction" TEXT,
+    //       "type" INTEGER
+    //     );`
+    //   );
+    // }
 
     if (!tableNames.includes('pointers')) {
       await this.sql.raw(

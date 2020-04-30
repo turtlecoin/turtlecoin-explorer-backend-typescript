@@ -129,33 +129,33 @@ export class API {
       });
     });
 
-    this.app.get('/inputs/:hash', async (req, res) => {
-      const { hash } = req.params;
+    // this.app.get('/inputs/:hash', async (req, res) => {
+    //   const { hash } = req.params;
 
-      const data = await db
-        .sql('inputs')
-        .select()
-        .where({ transaction: hash });
+    //   const data = await db
+    //     .sql('inputs')
+    //     .select()
+    //     .where({ transaction: hash });
 
-      res.json({
-        data,
-        status: 'OK',
-      });
-    });
+    //   res.json({
+    //     data,
+    //     status: 'OK',
+    //   });
+    // });
 
-    this.app.get('/outputs/:hash', async (req, res) => {
-      const { hash } = req.params;
+    // this.app.get('/outputs/:hash', async (req, res) => {
+    //   const { hash } = req.params;
 
-      const data = await db
-        .sql('outputs')
-        .select()
-        .where({ transaction: hash });
+    //   const data = await db
+    //     .sql('outputs')
+    //     .select()
+    //     .where({ transaction: hash });
 
-      res.json({
-        data,
-        status: 'OK',
-      });
-    });
+    //   res.json({
+    //     data,
+    //     status: 'OK',
+    //   });
+    // });
 
     this.app.get('/search', async (req, res) => {
       if (!req.query.query) {
