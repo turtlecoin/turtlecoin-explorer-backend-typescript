@@ -5,7 +5,7 @@ import log from 'electron-log';
 import { EventEmitter } from 'events';
 import knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
-import { wss } from '..';
+import { db, rewindBlocks, wss } from '..';
 import { prefix, suffix } from '../constants/karaiConstants';
 import { hexToIp, hexToPort } from '../utils/hexHelpers';
 
@@ -93,7 +93,7 @@ export class Database extends EventEmitter {
   }
 
   public async cleanup(blockCount: number = 1): Promise<void> {
-    log.debug('Cleaning up block...');
+    log.debug(`Rewinding ${blockCount} blocks...`);
     let i = 0;
     while (i < blockCount) {
       const blockQuery = await this.sql('blocks')
@@ -137,6 +137,7 @@ export class Database extends EventEmitter {
       log.debug('Block delete success.');
       i++;
     }
+    log.debug('Block rewind success.');
   }
 
   public async storePointer(transactionData: Transaction, blockData: Block) {
@@ -300,6 +301,10 @@ export class Database extends EventEmitter {
           "timestamp" INTEGER
         );`
       );
+    }
+
+    if (rewindBlocks) {
+      await db.cleanup(rewindBlocks);
     }
 
     this.ready = true;

@@ -2,7 +2,7 @@ import ax from 'axios';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Block, Transaction } from 'turtlecoin-utils';
-import { DAEMON_URI, db, inputTaker } from '..';
+import { DAEMON_URI, db, inputTaker, rewindBlocks } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
 import { sleep } from '../utils/sleep';
 
@@ -53,7 +53,6 @@ export class Monitor extends EventEmitter {
         .orderBy('height', 'desc')
         .limit(100)
     ).map((row) => row.hash);
-
     this.sync();
   }
 
