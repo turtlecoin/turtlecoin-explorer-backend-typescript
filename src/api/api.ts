@@ -44,6 +44,15 @@ export class API {
     this.app.get('/pointers', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
+      const { pointerHistory } = wss.getHistory();
+      if (offset === 0 && pointerHistory.length >= 20) {
+        res.json({
+          data: pointerHistory,
+          status: 'OK',
+        });
+        return;
+      }
+
       const data = await db
         .sql('pointers')
         .select()
@@ -74,8 +83,8 @@ export class API {
     this.app.get('/blocks', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
-      if (offset === 0) {
-        const { blockHistory } = wss.getHistory();
+      const { blockHistory } = wss.getHistory();
+      if (offset === 0 && blockHistory.length >= 20) {
         res.json({
           data: blockHistory,
           status: 'OK',
@@ -113,8 +122,8 @@ export class API {
     this.app.get('/transactions', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
-      if (offset === 0) {
-        const { txHistory } = wss.getHistory();
+      const { txHistory } = wss.getHistory();
+      if (offset === 0 && txHistory.length >= 20) {
         res.json({
           data: txHistory,
           status: 'OK',
