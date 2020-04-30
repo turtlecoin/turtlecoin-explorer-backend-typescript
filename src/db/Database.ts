@@ -45,7 +45,7 @@ export class Database extends EventEmitter {
     isCoinbase: boolean = false
   ): Promise<void> {
     if (this.isPointer(transaction.extra)) {
-      this.storePointer(transaction, blockData);
+      this.storePointer(transaction, blockData, trx);
     }
 
     const version = transaction.version;
@@ -144,7 +144,11 @@ export class Database extends EventEmitter {
     log.debug('Block rewind success.');
   }
 
-  public async storePointer(transactionData: Transaction, blockData: Block) {
+  public async storePointer(
+    transactionData: Transaction,
+    blockData: Block,
+    trx: knex.Transaction<any, any>
+  ) {
     log.debug(
       blockData.height,
       chalk.blue(transactionData.hash.slice(0, 10)),
@@ -171,7 +175,9 @@ export class Database extends EventEmitter {
       transaction,
     };
 
-    await this.sql('pointers').insert(sanitizedPointer);
+    await this.sql('pointers')
+      .insert(sanitizedPointer)
+      .transacting(trx);
     log.debug(
       blockData.height,
       chalk.blue(transactionData.hash.slice(0, 10)),

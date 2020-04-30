@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import log from 'electron-log';
 import http from 'http';
 import WebSocket from 'ws';

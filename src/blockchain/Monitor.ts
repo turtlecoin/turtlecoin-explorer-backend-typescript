@@ -71,7 +71,7 @@ export class Monitor extends EventEmitter {
       if (storageSize < 50) {
         log.debug(
           chalk.green.bold(
-            `Stored block size: ${storageSize.toFixed(2)} Mb, fetching more`
+            `stored  blocks ${storageSize.toFixed(2)} Mb, fetching more`
           )
         );
       } else {
@@ -146,6 +146,7 @@ export class Monitor extends EventEmitter {
         });
       } catch (error) {
         log.error(error);
+        await sleep(2000);
       }
     }
   }
