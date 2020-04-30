@@ -80,7 +80,7 @@ export class Monitor extends EventEmitter {
         } catch (error) {
           if (error.errno === 19) {
             log.warn('duplicate block height detected.');
-            // need to update the old data here
+            await db.cleanup(1);
             continue;
           }
           log.warn('Block parsing / storing failure!');
@@ -97,7 +97,7 @@ export class Monitor extends EventEmitter {
           } catch (error) {
             if (error.errno === 19) {
               log.warn('duplicate tx hash detected.');
-              // need to update the old data here
+              // it's probably the same transaction, no action needed
               continue;
             }
             log.warn('transaction parsing failure!');
