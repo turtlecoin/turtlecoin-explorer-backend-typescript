@@ -79,6 +79,7 @@ export class Monitor extends EventEmitter {
         try {
           await db.storeBlock(block);
         } catch (error) {
+          log.warn('Block parsing failure!');
           log.warn(error);
           log.warn(item.block);
           process.exit(1);
@@ -89,6 +90,8 @@ export class Monitor extends EventEmitter {
             const transaction: Transaction = Transaction.from(tx);
             await db.storeTransaction(transaction, block);
           } catch (error) {
+            log.warn('transaction parsing failure!');
+            log.warn('Problematic transaction is in block ' + block.hash);
             log.warn(tx);
             log.warn(error);
             process.exit(1);
