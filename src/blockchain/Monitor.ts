@@ -2,13 +2,14 @@ import ax from 'axios';
 import chalk from 'chalk';
 import log from 'electron-log';
 import { EventEmitter } from 'events';
+import { performance } from 'perf_hooks';
 import { Block, Transaction } from 'turtlecoin-utils';
 import { DAEMON_URI, db, inputTaker } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
+import { arrayAverage } from '../utils/arrayAverage';
 import { sleep } from '../utils/sleep';
 // tslint:disable-next-line: no-var-requires
 const sizeof = require('object-sizeof');
-console.log(sizeof({ abc: 'def' }));
 
 export class Monitor extends EventEmitter {
   public synced: boolean;
@@ -16,6 +17,7 @@ export class Monitor extends EventEmitter {
   private daemonURI: string;
   private checkpoints: string[];
   private blockStorage: any[];
+  private speedData: number[];
 
   constructor() {
     super();
@@ -24,6 +26,7 @@ export class Monitor extends EventEmitter {
     this.isSyncing = false;
     this.checkpoints = [turtleGenesisBlock];
     this.blockStorage = [];
+    this.speedData = [];
     this.init();
   }
 
@@ -121,6 +124,8 @@ export class Monitor extends EventEmitter {
         await sleep(timeout);
         timeout *= 2;
       }
+
+      const startTime = performance.now();
       try {
         let items = null;
         await db.sql.transaction(async (trx) => {
@@ -156,6 +161,17 @@ export class Monitor extends EventEmitter {
         log.error(error);
         await sleep(2000);
       }
+      const endTime = performance.now();
+      const processTime = (endTime - startTime) / 1000;
+
+      this.speedData.push(processTime);
+      if (this.speedData.length > 10000) {
+        this.speedData.shift();
+      }
+      log.debug(
+        chalk.yellow.bold(`PERFORMANCE`),
+        `average ${arrayAverage(this.speedData)} seconds per 100 blocks `
+      );
     }
   }
 }
