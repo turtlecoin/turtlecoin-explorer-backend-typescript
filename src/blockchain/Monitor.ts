@@ -121,10 +121,8 @@ export class Monitor extends EventEmitter {
         process.exit(0);
       }
 
-      let timeout = 1;
       while (this.blockStorage.length === 0) {
-        await sleep(timeout);
-        timeout *= 2;
+        await sleep(500);
       }
 
       const startTime = performance.now();
