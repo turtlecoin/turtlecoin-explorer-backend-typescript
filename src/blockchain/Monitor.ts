@@ -162,6 +162,8 @@ export class Monitor extends EventEmitter {
                 }
               }
             }
+
+            await trx.commit();
           });
         } else {
           log.debug('Block storage empty. Waiting...');
