@@ -93,17 +93,18 @@ export class Monitor extends EventEmitter {
           blockHashCheckpoints: this.getCheckpoints(),
         });
         try {
-          log.info(res.data.items);
-          const lastBlock = Block.from(
-            res.data.items[res.data.items.length - 1].block
-          );
-          this.addCheckpoint(lastBlock.hash);
+          if (res.data.items.length > 0) {
+            const lastBlock = Block.from(
+              res.data.items[res.data.items.length - 1].block
+            );
+            this.addCheckpoint(lastBlock.hash);
+          } else {
+            log.info('No blocks returned. Waiting...');
+            await sleep(5000);
+            continue;
+          }
         } catch (error) {
-          log.debug(
-            'Could not parse last block in /getrawblocks response. Most likely at top block.'
-          );
-          await sleep(5000);
-          continue;
+          console.warn(error);
         }
         this.blockStorage.unshift(res.data.items);
       } catch (error) {
