@@ -130,37 +130,42 @@ export class Monitor extends EventEmitter {
       const startTime = performance.now();
       try {
         let items = null;
-        await db.sql.transaction(async (trx) => {
-          items = this.blockStorage.pop();
-          for (const item of items) {
-            const block = Block.from(item.block);
-            try {
-              await db.storeBlock(block, trx);
-            } catch (error) {
-              log.warn('Block parsing / storing failure!');
-              log.warn(error);
-              log.warn(item.block);
-              if (error.errno !== 19) {
-                throw error;
-              }
-            }
-
-            for (const tx of item.transactions) {
+        if (this.blockStorage.length > 0) {
+          await db.sql.transaction(async (trx) => {
+            items = this.blockStorage.pop();
+            for (const item of items) {
+              const block = Block.from(item.block);
               try {
-                const transaction: Transaction = Transaction.from(tx);
-                await db.storeTransaction(transaction, block, trx);
+                await db.storeBlock(block, trx);
               } catch (error) {
-                log.warn('transaction parsing failure!');
-                log.warn('Problematic transaction is in block ' + block.hash);
-                log.warn(tx);
+                log.warn('Block parsing / storing failure!');
                 log.warn(error);
+                log.warn(item.block);
                 if (error.errno !== 19) {
                   throw error;
                 }
               }
+
+              for (const tx of item.transactions) {
+                try {
+                  const transaction: Transaction = Transaction.from(tx);
+                  await db.storeTransaction(transaction, block, trx);
+                } catch (error) {
+                  log.warn('transaction parsing failure!');
+                  log.warn('Problematic transaction is in block ' + block.hash);
+                  log.warn(tx);
+                  log.warn(error);
+                  if (error.errno !== 19) {
+                    throw error;
+                  }
+                }
+              }
             }
-          }
-        });
+          });
+        } else {
+          log.debug('Block storage empty. Waiting...');
+          await sleep(5000);
+        }
       } catch (error) {
         this.blockStorage = [];
         await this.initCheckpoints();
