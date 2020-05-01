@@ -138,7 +138,9 @@ export class Monitor extends EventEmitter {
               log.warn('Block parsing / storing failure!');
               log.warn(error);
               log.warn(item.block);
-              throw error;
+              if (error.errno !== 19) {
+                throw error;
+              }
             }
 
             for (const tx of item.transactions) {
@@ -150,7 +152,9 @@ export class Monitor extends EventEmitter {
                 log.warn('Problematic transaction is in block ' + block.hash);
                 log.warn(tx);
                 log.warn(error);
-                throw error;
+                if (error.errno !== 19) {
+                  throw error;
+                }
               }
             }
           }
