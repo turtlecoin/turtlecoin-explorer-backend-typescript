@@ -98,7 +98,7 @@ export class Monitor extends EventEmitter {
           );
           this.addCheckpoint(lastBlock.hash);
         } catch (error) {
-          log.warn(
+          log.debug(
             'Could not parse last block in /getrawblocks response. Most likely at top block.'
           );
           await sleep(5000);
