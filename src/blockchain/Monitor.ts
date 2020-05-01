@@ -93,6 +93,7 @@ export class Monitor extends EventEmitter {
           blockHashCheckpoints: this.getCheckpoints(),
         });
         try {
+          log.info(res.data.items);
           const lastBlock = Block.from(
             res.data.items[res.data.items.length - 1].block
           );
