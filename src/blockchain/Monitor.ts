@@ -98,8 +98,10 @@ export class Monitor extends EventEmitter {
           );
           this.addCheckpoint(lastBlock.hash);
         } catch (error) {
-          log.error('Could not parse last block in /getrawblocks response.');
-          log.error(error);
+          log.warn(
+            'Could not parse last block in /getrawblocks response. Most likely at top block.'
+          );
+          await sleep(5000);
           continue;
         }
         this.blockStorage.unshift(res.data.items);

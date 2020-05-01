@@ -154,37 +154,40 @@ export class API {
 
       const query = decodeURIComponent(req.query.query as string);
 
-      const pointers = await db
-        .sql('pointers')
-        .select()
-        .where({ id: query })
-        .orWhere({ ascii: query })
-        .orWhere({ hex: query })
-        .orWhere({ block: query })
-        .orWhere({ transaction: query })
-        .orWhere({ timestamp: query });
+      if (Number.isInteger(Number(query))) {
+        const blockQuery = await db
+          .sql('blocks')
+          .select()
+          .where({ height: Number(query) });
 
-      const blocks = await db
-        .sql('blocks')
-        .select()
-        .where({ hash: query })
-        .orWhere({ height: query })
-        .orWhere({ nonce: query })
-        .orWhere({ timestamp: query });
+        const blockData = [[], blockQuery, []];
+        res.json({
+          data: blockData,
+          status: 'OK',
+        });
+      } else {
+        const pointers = await db
+          .sql('pointers')
+          .select()
+          .where({ hex: query });
 
-      const transactions = await db
-        .sql('transactions')
-        .select()
-        .where({ hash: query })
-        .orWhere({ publicKey: query })
-        .orWhere({ paymentID: query });
+        const blocks = await db
+          .sql('blocks')
+          .select()
+          .where({ hash: query });
 
-      const data = [pointers, blocks, transactions];
+        const transactions = await db
+          .sql('transactions')
+          .select()
+          .where({ hash: query })
+          .orWhere({ paymentID: query });
+        const data = [pointers, blocks, transactions];
 
-      res.json({
-        data,
-        status: 'OK',
-      });
+        res.json({
+          data,
+          status: 'OK',
+        });
+      }
     });
 
     this.app.listen(Number(API_PORT!), () => {
