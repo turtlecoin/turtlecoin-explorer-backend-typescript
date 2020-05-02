@@ -134,7 +134,7 @@ export class API {
       const data = await db
         .sql('transactions')
         .select()
-        .orderBy('rowid', 'desc')
+        .orderBy('id', 'desc')
         .offset(offset)
         .limit(offsetIncrement);
 
@@ -180,7 +180,7 @@ export class API {
           .sql('transactions')
           .select()
           .where({ hash: query })
-          .orWhere({ paymentID: query });
+          .orWhere({ payment_id: query });
         const data = [pointers, blocks, transactions];
 
         res.json({

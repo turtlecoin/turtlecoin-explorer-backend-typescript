@@ -93,6 +93,7 @@ export class Database extends EventEmitter {
       size,
       unlock_time,
       version,
+      timestamp,
     };
 
     await this.sql('transactions')
@@ -262,9 +263,8 @@ export class Database extends EventEmitter {
 
     const tableNames = tables[0].map((row: any) => row.table_name);
 
-    console.log(!tableNames.includes('blocks'));
-
     if (!tableNames.includes('blocks')) {
+      log.info('Creating blocks table...');
       await this.sql.schema.createTable('blocks', (table) => {
         table
           .string('hash')
@@ -287,10 +287,11 @@ export class Database extends EventEmitter {
     }
 
     if (!tableNames.includes('transactions')) {
+      log.info('Creating transaction table...');
       await this.sql.schema.createTable('transactions', (table) => {
+        table.increments('id');
         table
           .string('hash')
-          .primary()
           .unique()
           .index();
         table.string('block').index();
@@ -309,6 +310,7 @@ export class Database extends EventEmitter {
     }
 
     if (!tableNames.includes('pointers')) {
+      log.info('Creating pointer table');
       await this.sql.schema.createTable('pointers', (table) => {
         table.increments('id');
         table.string('block').index();
