@@ -19,7 +19,16 @@ for (const arg of process.argv) {
   }
 }
 
-export const { DAEMON_URI, API_PORT, WSS_PORT } = process.env;
+export const {
+  DAEMON_URI,
+  API_PORT,
+  WSS_PORT,
+  SQL_HOST,
+  SQL_PORT,
+  SQL_USER,
+  SQL_PASSWORD,
+  SQL_DB_NAME,
+} = process.env;
 export const db = new Database();
 export const monitor = new Monitor();
 export const inputTaker = new InputTaker();

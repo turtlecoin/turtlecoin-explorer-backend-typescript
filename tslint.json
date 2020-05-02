@@ -4,6 +4,7 @@
   "rules": {
     "quotemark": [true, "single"],
     "no-console": [true, "never"],
+    "object-literal-sort-keys": false,
     "trailing-comma": [
       true,
       {

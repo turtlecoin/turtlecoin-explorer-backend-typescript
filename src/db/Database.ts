@@ -5,18 +5,29 @@ import log from 'electron-log';
 import { EventEmitter } from 'events';
 import knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
-import { db, rewindBlocks, wss } from '..';
+import {
+  SQL_DB_NAME,
+  SQL_HOST,
+  SQL_PASSWORD,
+  SQL_PORT,
+  SQL_USER,
+  wss,
+} from '..';
 import { prefix, suffix } from '../constants/karaiConstants';
 import { hexToIp, hexToPort } from '../utils/hexHelpers';
 
 export class Database extends EventEmitter {
   public ready: boolean;
   public sql: knex<any, unknown> = knex({
-    client: 'sqlite3',
+    client: 'mysql',
+    version: '8.0',
     connection: {
-      filename: './db.sqlite',
+      host: SQL_HOST,
+      user: SQL_USER,
+      password: SQL_PASSWORD,
+      database: SQL_DB_NAME,
+      port: Number(SQL_PORT),
     },
-    useNullAsDefault: true,
   });
 
   constructor() {
@@ -50,15 +61,15 @@ export class Database extends EventEmitter {
 
     const version = transaction.version;
     const amount = transaction.amount;
-    const extra = transaction.extra;
-    const extraData = transaction.extraData;
+    const extra = transaction.extra.toString('base64');
+    const extra_data = transaction.extraData.toString('base64');
     const fee = transaction.fee;
     const hash = transaction.hash;
-    const paymentID = transaction.paymentId;
-    const publicKey = transaction.publicKey;
+    const payment_id = transaction.paymentId;
+    const public_key = transaction.publicKey;
     const size = transaction.size;
-    const unlockTime = transaction.unlockTime;
-    const rawTx = transaction.toString();
+    const unlock_time = transaction.unlockTime;
+    const raw_tx = transaction.toString();
     const block = blockData.hash;
 
     log.debug(
@@ -72,14 +83,14 @@ export class Database extends EventEmitter {
       amount,
       block,
       extra,
-      extraData,
+      extra_data,
       fee,
       hash,
-      paymentID,
-      publicKey,
-      rawTx,
+      payment_id,
+      public_key,
+      raw_tx,
       size,
-      unlockTime,
+      unlock_time,
       version,
     };
 
@@ -164,8 +175,9 @@ export class Database extends EventEmitter {
     const port = hexToPort(peer.substring(8, 12));
     const ascii = `ktx://${peerIP}:${port.toString()}`;
     const block = blockData.hash;
-    const timestamp = blockData.timestamp.getTime();
+    const timestamp = blockData.timestamp.getTime() / 1000;
     const transaction = transactionData.hash;
+    const raw_pointer = transactionData.extra.toString('base64');
 
     const sanitizedPointer = {
       ascii,
@@ -204,7 +216,7 @@ export class Database extends EventEmitter {
     const size = block.size;
     const major_version = block.majorVersion;
     const minor_version = block.minorVersion;
-    const timestamp = block.timestamp.getTime();
+    const timestamp = block.timestamp.getTime() / 1000;
     const previous_hash = block.previousBlockHash;
     const nonce = block.nonce;
     const activate_parent_block_version = block.activateParentBlockVersion;
@@ -243,66 +255,62 @@ export class Database extends EventEmitter {
 
   private async init(): Promise<void> {
     const tables = await this.sql.raw(
-      `SELECT name FROM sqlite_master
-       WHERE type='table'
-       ORDER BY name;`
+      'SELECT table_name FROM information_schema.tables WHERE table_schema = "explorer"'
     );
-    const tableNames = tables.map((table: any) => table.name);
+
+    const tableNames = tables[0].map((row: any) => row.TABLE_NAME);
 
     if (!tableNames.includes('blocks')) {
-      await this.sql.raw(
-        `CREATE TABLE "blocks" (
-          "raw_block" TEXT UNIQUE,
-          "activate_parent_block_version" INTEGER,
-          "hash" TEXT UNIQUE PRIMARY KEY,
-          "height" INTEGER,
-          "major_version" INTEGER,
-          "minor_version" INTEGER,
-          "nonce" TEXT,
-          "previous_hash",
-          "size" INTEGER,
-          "timestamp" INTEGER
-        );`
-      );
+      await this.sql.schema.createTable('blocks', (table) => {
+        table
+          .string('hash')
+          .primary()
+          .unique();
+        table.integer('height').unique();
+        table.integer('timestamp');
+        table.integer('size');
+        table.integer('activate_parent_block_version');
+        table.integer('major_version');
+        table.integer('minor_version');
+        table.string('nonce');
+        table.string('previous_hash');
+        table.text('raw_block');
+      });
     }
 
     if (!tableNames.includes('transactions')) {
-      await this.sql.raw(
-        `CREATE TABLE "transactions" (
-          "hash" TEXT UNIQUE PRIMARY KEY,
-          "block" TEXT,
-          "amount" INTEGER,
-          "version" INTEGER,
-          "extra" BLOB,
-          "extraData" BLOB,
-          "fee" INTEGER,
-          "paymentID" TEXT,
-          "publicKey" TEXT,
-          "size" INTEGER,
-          "unlockTime" INTEGER,
-          "rawTx" TEXT
-        );`
-      );
+      await this.sql.schema.createTable('transactions', (table) => {
+        table
+          .string('hash')
+          .primary()
+          .unique();
+        table.string('block');
+        table.integer('amount');
+        table.integer('version');
+        table.text('extra');
+        table.text('extra_data');
+        table.integer('fee');
+        table.string('payment_id');
+        table.string('public_key');
+        table.integer('size');
+        table.integer('unlock_time');
+        table.text('raw_tx');
+      });
     }
 
     if (!tableNames.includes('pointers')) {
-      await this.sql.raw(
-        `CREATE TABLE "pointers" (
-          "id"	INTEGER PRIMARY KEY AUTOINCREMENT,
-          "ascii"	TEXT,
-          "hex"	TEXT UNIQUE,
-          "block"	TEXT,
-          "transaction" TEXT,
-          "timestamp" INTEGER
-        );`
-      );
+      await this.sql.schema.createTable('pointers', (table) => {
+        table.increments('id');
+        table.string('block');
+        table.string('transaction');
+        table.string('ascii');
+        table.string('hex');
+        table.integer('timestamp');
+        table.text('raw_pointer');
+      });
     }
 
-    if (rewindBlocks) {
-      await db.cleanup(rewindBlocks);
-    }
-
+    log.info('Database is ready!');
     this.ready = true;
-    log.info('Database opened successfully');
   }
 }
