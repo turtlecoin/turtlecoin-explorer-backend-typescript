@@ -99,6 +99,7 @@ export class Database extends EventEmitter {
     await this.sql('transactions')
       .insert(sanitizedTx)
       .transacting(trx);
+
     log.debug(
       blockData.height,
       chalk.blue(transaction.hash.slice(0, 10)),
@@ -307,7 +308,7 @@ export class Database extends EventEmitter {
         table.string('payment_id').index();
         table.string('public_key');
         table.integer('size');
-        table.integer('unlock_time');
+        table.bigInteger('unlock_time');
         table.text('raw_tx', 'mediumtext');
       });
     }

@@ -135,30 +135,45 @@ export class Monitor extends EventEmitter {
           await db.sql.transaction(async (trx) => {
             items = this.blockStorage.pop();
             for (const item of items) {
-              const block = Block.from(item.block);
+              let block: Block | null;
+              try {
+                block = Block.from(item.block);
+              } catch (error) {
+                log.warn('Problem parsing block!');
+                log.warn(item.block);
+                throw error;
+              }
+
               try {
                 await db.storeBlock(block, trx);
               } catch (error) {
-                log.warn('Block parsing / storing failure!');
-                log.warn(error);
+                log.warn('Block storage failure!');
                 log.warn(item.block);
+                log.warn(block);
                 if (error.errno !== 19) {
                   throw error;
                 }
               }
 
               for (const tx of item.transactions) {
+                let transaction: Transaction | null;
                 try {
-                  const transaction: Transaction = Transaction.from(tx);
-                  await db.storeTransaction(transaction, block, trx);
+                  transaction = Transaction.from(tx);
                 } catch (error) {
                   log.warn('transaction parsing failure!');
                   log.warn('Problematic transaction is in block ' + block.hash);
                   log.warn(tx);
-                  log.warn(error);
                   if (error.errno !== 19) {
                     throw error;
                   }
+                }
+                try {
+                  await db.storeTransaction(transaction!, block, trx);
+                } catch (error) {
+                  log.warn('Problem storing transaction!');
+                  log.warn(tx);
+                  log.warn(transaction!);
+                  throw error;
                 }
               }
             }
