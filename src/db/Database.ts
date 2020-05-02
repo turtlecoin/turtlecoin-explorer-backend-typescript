@@ -277,7 +277,7 @@ export class Database extends EventEmitter {
         table.integer('minor_version');
         table.string('nonce');
         table.string('previous_hash');
-        table.text('raw_block');
+        table.text('raw_block', 'mediumtext');
       });
     }
 
@@ -290,14 +290,14 @@ export class Database extends EventEmitter {
         table.string('block');
         table.integer('amount');
         table.integer('version');
-        table.text('extra');
-        table.text('extra_data');
+        table.text('extra', 'mediumtext');
+        table.text('extra_data', 'mediumtext');
         table.integer('fee');
         table.string('payment_id');
         table.string('public_key');
         table.integer('size');
         table.integer('unlock_time');
-        table.text('raw_tx');
+        table.text('raw_tx', 'mediumtext');
       });
     }
 
@@ -309,7 +309,7 @@ export class Database extends EventEmitter {
         table.string('ascii');
         table.string('hex');
         table.integer('timestamp');
-        table.text('raw_pointer');
+        table.text('raw_pointer', 'mediumtext');
       });
     }
 
