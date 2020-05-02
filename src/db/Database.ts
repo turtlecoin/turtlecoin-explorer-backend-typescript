@@ -260,6 +260,10 @@ export class Database extends EventEmitter {
 
     const tableNames = tables[0].map((row: any) => row.TABLE_NAME);
 
+    console.log(tableNames);
+
+    console.log(!tableNames.includes('blocks'));
+
     if (!tableNames.includes('blocks')) {
       await this.sql.schema.createTable('blocks', (table) => {
         table
