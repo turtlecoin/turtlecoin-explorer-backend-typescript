@@ -169,10 +169,7 @@ export class Monitor extends EventEmitter {
           await sleep(5000);
         }
       } catch (error) {
-        this.blockStorage = [];
-        await this.initCheckpoints();
-        log.error(error);
-        await sleep(2000);
+        throw error;
       }
       const endTime = performance.now();
       const processTime = (endTime - startTime) / 1000;
