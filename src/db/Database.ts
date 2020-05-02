@@ -185,6 +185,7 @@ export class Database extends EventEmitter {
       hex,
       timestamp,
       transaction,
+      raw_pointer,
     };
 
     await this.sql('pointers')

@@ -133,7 +133,6 @@ export class Monitor extends EventEmitter {
         if (this.blockStorage.length > 0) {
           await db.sql.transaction(async (trx) => {
             items = this.blockStorage.pop();
-            log.info(items);
             for (const item of items) {
               const block = Block.from(item.block);
               try {
