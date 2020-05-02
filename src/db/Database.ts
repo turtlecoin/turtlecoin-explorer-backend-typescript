@@ -258,9 +258,7 @@ export class Database extends EventEmitter {
       'SELECT table_name FROM information_schema.tables WHERE table_schema = "explorer"'
     );
 
-    const tableNames = tables[0].map((row: any) => row.TABLE_NAME);
-
-    console.log(tableNames);
+    const tableNames = tables[0].map((row: any) => row.table_name);
 
     console.log(!tableNames.includes('blocks'));
 
