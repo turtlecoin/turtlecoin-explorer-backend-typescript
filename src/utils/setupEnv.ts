@@ -12,6 +12,7 @@ export function setupEnv(): void {
     'SQL_PORT',
     'SQL_USER',
     'SQL_PASSWORD',
+    'SQL_DB_NAME',
   ];
   for (const required of requiredEnvVars) {
     if (process.env[required] === undefined) {

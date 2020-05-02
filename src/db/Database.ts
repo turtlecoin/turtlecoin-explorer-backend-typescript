@@ -69,7 +69,7 @@ export class Database extends EventEmitter {
     const public_key = transaction.publicKey;
     const size = transaction.size;
     const unlock_time = transaction.unlockTime;
-    const raw_tx = transaction.toString();
+    const raw_tx = transaction.toBuffer().toString('base64');
     const block = blockData.hash;
     const timestamp = blockData.timestamp.getTime() / 1000;
 
@@ -213,7 +213,7 @@ export class Database extends EventEmitter {
       'INSERT BLOCK',
       chalk.yellow.bold('SUBMIT')
     );
-    const raw_block = block.toString();
+    const raw_block = block.toBuffer().toString('base64');
     const hash = block.hash;
     const height = block.height;
     const size = block.size;
@@ -261,7 +261,10 @@ export class Database extends EventEmitter {
       'SELECT table_name FROM information_schema.tables WHERE table_schema = "explorer"'
     );
 
-    const tableNames = tables[0].map((row: any) => row.table_name);
+    // wtf mysql
+    const tableNames = tables[0].map((row: any) =>
+      row.table_name ? row.table_name : row.TABLE_NAME
+    );
 
     if (!tableNames.includes('blocks')) {
       log.info('Creating blocks table...');

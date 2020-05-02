@@ -4,7 +4,6 @@
   "description": "TurtleCoin karai client written in typescript",
   "main": "./dist/index.js",
   "author": "Extra <extrahash@protonmail.com>",
-  "license": "GPL-3.0",
   "scripts": {
     "start": "yarn build; node ./dist/index.js",
     "build": "node ./node_modules/typescript/bin/tsc",
