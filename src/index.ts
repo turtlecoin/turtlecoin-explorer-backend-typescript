@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import log from 'electron-log';
 import { API } from './api/api';
 import { Monitor } from './blockchain/Monitor';
@@ -28,7 +29,11 @@ export const {
   SQL_USER,
   SQL_PASSWORD,
   SQL_DB_NAME,
+  SENTRY_DSN,
 } = process.env;
+
+Sentry.init({ dsn: SENTRY_DSN });
+
 export const db = new Database();
 export const monitor = new Monitor();
 export const inputTaker = new InputTaker();

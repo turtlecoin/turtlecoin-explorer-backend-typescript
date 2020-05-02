@@ -71,6 +71,7 @@ export class Database extends EventEmitter {
     const unlock_time = transaction.unlockTime;
     const raw_tx = transaction.toString();
     const block = blockData.hash;
+    const timestamp = blockData.timestamp.getTime() / 1000;
 
     log.debug(
       blockData.height,
@@ -268,8 +269,12 @@ export class Database extends EventEmitter {
         table
           .string('hash')
           .primary()
-          .unique();
-        table.integer('height').unique();
+          .unique()
+          .index();
+        table
+          .integer('height')
+          .unique()
+          .index();
         table.integer('timestamp');
         table.integer('size');
         table.integer('activate_parent_block_version');
@@ -286,14 +291,16 @@ export class Database extends EventEmitter {
         table
           .string('hash')
           .primary()
-          .unique();
-        table.string('block');
-        table.integer('amount');
+          .unique()
+          .index();
+        table.string('block').index();
+        table.bigInteger('amount');
+        table.integer('timestamp');
         table.integer('version');
         table.text('extra', 'mediumtext');
         table.text('extra_data', 'mediumtext');
         table.integer('fee');
-        table.string('payment_id');
+        table.string('payment_id').index();
         table.string('public_key');
         table.integer('size');
         table.integer('unlock_time');
@@ -304,10 +311,10 @@ export class Database extends EventEmitter {
     if (!tableNames.includes('pointers')) {
       await this.sql.schema.createTable('pointers', (table) => {
         table.increments('id');
-        table.string('block');
-        table.string('transaction');
+        table.string('block').index();
+        table.string('transaction').index();
         table.string('ascii');
-        table.string('hex');
+        table.string('hex').index();
         table.integer('timestamp');
         table.text('raw_pointer', 'mediumtext');
       });
