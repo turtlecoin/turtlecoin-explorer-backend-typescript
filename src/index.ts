@@ -9,7 +9,7 @@ import { setupEnv } from './utils/setupEnv';
 import { WebSocketServer } from './ws/ws';
 
 (BigInt.prototype as any).toJSON = function() {
-  return this.toString();
+  return JSON.parse(this.toString()).value;
 };
 
 printAscii();
