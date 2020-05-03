@@ -1,7 +1,7 @@
 import log from 'electron-log';
 import http from 'http';
 import WebSocket from 'ws';
-import { WSS_PORT } from '..';
+import { db, WSS_PORT } from '..';
 
 export class WebSocketServer {
   private server: http.Server;
@@ -60,7 +60,21 @@ export class WebSocketServer {
     this.connections.push(connection);
   }
 
-  private init() {
+  private async init() {
+    this.blockHistory = await db
+      .sql('blocks')
+      .select()
+      .orderBy('height', 'desc')
+      .offset(0)
+      .limit(20);
+
+    this.txHistory = await db
+      .sql('transactions')
+      .select()
+      .orderBy('id', 'desc')
+      .offset(0)
+      .limit(20);
+
     this.wss.on('connection', (ws: any) => {
       this.addConnection(ws);
       // on message handling
