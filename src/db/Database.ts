@@ -60,7 +60,7 @@ export class Database extends EventEmitter {
     }
 
     const version = transaction.version;
-    const amount = transaction.amount;
+    const amount = transaction.amount.toString();
     const extra = transaction.extra;
     const extra_data = transaction.extraData;
     const fee = transaction.fee;
