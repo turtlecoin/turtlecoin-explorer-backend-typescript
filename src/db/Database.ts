@@ -68,10 +68,7 @@ export class Database extends EventEmitter {
     const payment_id = transaction.paymentId;
     const public_key = transaction.publicKey;
     const size = transaction.size;
-    const unlock_time =
-      typeof transaction.unlockTime === 'object'
-        ? transaction.unlockTime.toString()
-        : transaction.unlockTime;
+    const unlock_time = transaction.unlockTime.toString();
     const raw_tx = transaction.toBuffer();
     const block = blockData.hash;
     const timestamp = blockData.timestamp.getTime() / 1000;
@@ -311,7 +308,7 @@ export class Database extends EventEmitter {
         table.string('payment_id').index();
         table.string('public_key');
         table.integer('size');
-        table.bigInteger('unlock_time');
+        table.string('unlock_time');
         table.specificType('raw_tx', 'mediumblob');
       });
     }

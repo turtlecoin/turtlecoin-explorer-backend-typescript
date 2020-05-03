@@ -8,12 +8,12 @@ import { printAscii } from './utils/printAscii';
 import { setupEnv } from './utils/setupEnv';
 import { WebSocketServer } from './ws/ws';
 
-(BigInt.prototype as any).toJSON = function() {
-  return JSON.parse(this.toString()).value;
-};
-
 printAscii();
 setupEnv();
+
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+};
 
 export let rewindBlocks: number | null = null;
 
