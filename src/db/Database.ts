@@ -68,7 +68,10 @@ export class Database extends EventEmitter {
     const payment_id = transaction.paymentId;
     const public_key = transaction.publicKey;
     const size = transaction.size;
-    const unlock_time = transaction.unlockTime;
+    const unlock_time =
+      typeof transaction.unlockTime === 'object'
+        ? transaction.unlockTime.toString()
+        : transaction.unlockTime;
     const raw_tx = transaction.toBuffer();
     const block = blockData.hash;
     const timestamp = blockData.timestamp.getTime() / 1000;
