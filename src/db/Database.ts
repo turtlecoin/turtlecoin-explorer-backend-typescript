@@ -61,15 +61,15 @@ export class Database extends EventEmitter {
 
     const version = transaction.version;
     const amount = transaction.amount;
-    const extra = transaction.extra.toString('base64');
-    const extra_data = transaction.extraData.toString('base64');
+    const extra = transaction.extra;
+    const extra_data = transaction.extraData;
     const fee = transaction.fee;
     const hash = transaction.hash;
     const payment_id = transaction.paymentId;
     const public_key = transaction.publicKey;
     const size = transaction.size;
     const unlock_time = transaction.unlockTime;
-    const raw_tx = transaction.toBuffer().toString('base64');
+    const raw_tx = transaction.toBuffer();
     const block = blockData.hash;
     const timestamp = blockData.timestamp.getTime() / 1000;
 
@@ -180,7 +180,7 @@ export class Database extends EventEmitter {
     const block = blockData.hash;
     const timestamp = blockData.timestamp.getTime() / 1000;
     const transaction = transactionData.hash;
-    const raw_pointer = transactionData.extra.toString('base64');
+    const raw_pointer = transactionData.extra;
 
     const sanitizedPointer = {
       ascii,
@@ -214,7 +214,7 @@ export class Database extends EventEmitter {
       'INSERT BLOCK',
       chalk.yellow.bold('SUBMIT')
     );
-    const raw_block = block.toBuffer().toString('base64');
+    const raw_block = block.toBuffer();
     const hash = block.hash;
     const height = block.height;
     const size = block.size;
@@ -286,7 +286,7 @@ export class Database extends EventEmitter {
         table.integer('minor_version');
         table.string('nonce');
         table.string('previous_hash');
-        table.text('raw_block', 'mediumtext');
+        table.specificType('raw_block', 'mediumblob');
       });
     }
 
@@ -302,14 +302,14 @@ export class Database extends EventEmitter {
         table.bigInteger('amount');
         table.integer('timestamp');
         table.integer('version');
-        table.text('extra', 'mediumtext');
-        table.text('extra_data', 'mediumtext');
+        table.binary('extra');
+        table.binary('extra_data');
         table.integer('fee');
         table.string('payment_id').index();
         table.string('public_key');
         table.integer('size');
         table.bigInteger('unlock_time');
-        table.text('raw_tx', 'mediumtext');
+        table.specificType('raw_tx', 'mediumblob');
       });
     }
 
@@ -322,7 +322,7 @@ export class Database extends EventEmitter {
         table.string('ascii');
         table.string('hex').index();
         table.integer('timestamp');
-        table.text('raw_pointer', 'mediumtext');
+        table.specificType('raw_pointer', 'mediumblob');
       });
     }
 

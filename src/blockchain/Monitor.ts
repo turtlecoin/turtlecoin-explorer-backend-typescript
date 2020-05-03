@@ -7,7 +7,6 @@ import { Block, Transaction } from 'turtlecoin-utils';
 import { DAEMON_URI, db, inputTaker } from '..';
 import { turtleGenesisBlock } from '../constants/turtleConstants';
 import { arrayAverage } from '../utils/arrayAverage';
-import { checkSizeDifference } from '../utils/checkSizeDifference';
 import { sleep } from '../utils/sleep';
 // tslint:disable-next-line: no-var-requires
 const sizeof = require('object-sizeof');
