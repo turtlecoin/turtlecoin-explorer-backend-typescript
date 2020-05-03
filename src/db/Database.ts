@@ -299,7 +299,7 @@ export class Database extends EventEmitter {
           .unique()
           .index();
         table.string('block').index();
-        table.bigInteger('amount');
+        table.string('amount');
         table.integer('timestamp');
         table.integer('version');
         table.binary('extra');
