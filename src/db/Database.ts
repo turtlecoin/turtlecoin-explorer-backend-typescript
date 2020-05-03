@@ -302,8 +302,8 @@ export class Database extends EventEmitter {
         table.string('amount');
         table.integer('timestamp');
         table.integer('version');
-        table.binary('extra');
-        table.binary('extra_data');
+        table.specificType('extra', 'mediumblob');
+        table.specificType('extra_data', 'mediumblob');
         table.integer('fee');
         table.string('payment_id').index();
         table.string('public_key');
