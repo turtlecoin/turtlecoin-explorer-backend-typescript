@@ -179,6 +179,20 @@ export class API {
       });
     });
 
+    this.app.get('/transactions/:hash/raw', async (req, res) => {
+      const { hash } = req.params;
+
+      const data = await db
+        .sql('transactions')
+        .select('raw_tx')
+        .where({ hash });
+
+      res.json({
+        data,
+        status: 'OK',
+      });
+    });
+
     this.app.get('/transactions', async (req, res) => {
       const offset = req.query.offset ? Number(req.query.offset) : 0;
 
