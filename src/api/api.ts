@@ -83,6 +83,27 @@ export class API {
         )
         .where({ hash });
 
+      const transactions = await db
+        .sql('transactions')
+        .select(
+          'hash',
+          'block',
+          'amount',
+          'timestamp',
+          'extra',
+          'extra_data',
+          'fee',
+          'payment_id',
+          'public_key',
+          'size',
+          'unlock_time'
+        )
+        .where({ block: hash });
+
+      if (data.length > 0) {
+        data[0].transactions = transactions;
+      }
+
       res.json({
         data,
         status: 'OK',
@@ -142,6 +163,15 @@ export class API {
           'unlock_time'
         )
         .where({ hash });
+
+      const pointers = await db
+        .sql('pointers')
+        .select('block', 'transaction', 'ascii', 'hex', 'timestamp')
+        .where({ transaction: hash });
+
+      if (data.length > 0) {
+        data[0].pointers = pointers;
+      }
 
       res.json({
         data,

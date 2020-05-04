@@ -69,8 +69,8 @@ export class Monitor extends EventEmitter {
 
     await this.initCheckpoints();
 
-    this.sync();
-    this.process();
+    // this.sync();
+    // this.process();
   }
 
   private async sync() {
