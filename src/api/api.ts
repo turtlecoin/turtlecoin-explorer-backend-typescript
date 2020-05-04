@@ -32,7 +32,7 @@ export class API {
 
       const data = await db
         .sql('pointers')
-        .select()
+        .select('block', 'transaction', 'ascii', 'hex', 'timestamp')
         .where({ hex });
 
       res.json({
@@ -55,7 +55,7 @@ export class API {
 
       const data = await db
         .sql('pointers')
-        .select()
+        .select('block', 'transaction', 'ascii', 'hex', 'timestamp')
         .orderBy('id', 'desc')
         .offset(offset)
         .limit(offsetIncrement);
@@ -71,7 +71,16 @@ export class API {
 
       const data = await db
         .sql('blocks')
-        .select()
+        .select(
+          'hash',
+          'height',
+          'timestamp',
+          'size',
+          'activate_parent_block_version',
+          'major_version',
+          'minor_version',
+          'nonce'
+        )
         .where({ hash });
 
       res.json({
@@ -94,7 +103,16 @@ export class API {
 
       const data = await db
         .sql('blocks')
-        .select()
+        .select(
+          'hash',
+          'height',
+          'timestamp',
+          'size',
+          'activate_parent_block_version',
+          'major_version',
+          'minor_version',
+          'nonce'
+        )
         .orderBy('height', 'desc')
         .offset(offset)
         .limit(offsetIncrement);
@@ -110,7 +128,19 @@ export class API {
 
       const data = await db
         .sql('transactions')
-        .select()
+        .select(
+          'hash',
+          'block',
+          'amount',
+          'timestamp',
+          'extra',
+          'extra_data',
+          'fee',
+          'payment_id',
+          'public_key',
+          'size',
+          'unlock_time'
+        )
         .where({ hash });
 
       res.json({
@@ -133,7 +163,19 @@ export class API {
 
       const data = await db
         .sql('transactions')
-        .select()
+        .select(
+          'hash',
+          'block',
+          'amount',
+          'timestamp',
+          'extra',
+          'extra_data',
+          'fee',
+          'payment_id',
+          'public_key',
+          'size',
+          'unlock_time'
+        )
         .orderBy('id', 'desc')
         .offset(offset)
         .limit(offsetIncrement);
