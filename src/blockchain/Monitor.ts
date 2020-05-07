@@ -131,54 +131,61 @@ export class Monitor extends EventEmitter {
       try {
         let items = null;
         if (this.blockStorage.length > 0) {
-          await db.sql.transaction(async (trx) => {
-            items = this.blockStorage.pop();
-            for (const item of items) {
-              let block: Block | null;
-              try {
-                block = Block.from(item.block);
-              } catch (error) {
-                log.warn('Problem parsing block!');
-                log.warn(item.block);
-                throw error;
-              }
-
-              try {
-                await db.storeBlock(block, trx);
-              } catch (error) {
-                log.warn('Block storage failure!');
-                log.warn(item.block);
-                log.warn(block);
-                if (error.errno !== 19) {
+          try {
+            await db.sql.transaction(async (trx) => {
+              items = this.blockStorage.pop();
+              for (const item of items) {
+                let block: Block | null;
+                try {
+                  block = Block.from(item.block);
+                } catch (error) {
+                  log.warn('Problem parsing block!');
+                  log.warn(item.block);
                   throw error;
                 }
-              }
 
-              for (const tx of item.transactions) {
-                let transaction: Transaction | null;
                 try {
-                  transaction = Transaction.from(tx);
+                  await db.storeBlock(block, trx);
                 } catch (error) {
-                  log.warn('transaction parsing failure!');
-                  log.warn('Problematic transaction is in block ' + block.hash);
-                  log.warn(tx);
-                  if (error.errno !== 19) {
+                  if (error.code === 'ERROR_DUP_ENTRY') {
+                    trx.destroy();
+                  }
+
+                  log.warn('Block storage failure!');
+                  log.warn(item.block);
+                  log.warn(block);
+                }
+
+                for (const tx of item.transactions) {
+                  let transaction: Transaction | null;
+                  try {
+                    transaction = Transaction.from(tx);
+                  } catch (error) {
+                    log.warn('transaction parsing failure!');
+                    log.warn(
+                      'Problematic transaction is in block ' + block.hash
+                    );
+                    log.warn(tx);
+                    if (error.errno !== 19) {
+                      throw error;
+                    }
+                  }
+                  try {
+                    await db.storeTransaction(transaction!, block, trx);
+                  } catch (error) {
+                    log.warn('Problem storing transaction!');
+                    log.warn(tx);
+                    log.warn(transaction!);
                     throw error;
                   }
                 }
-                try {
-                  await db.storeTransaction(transaction!, block, trx);
-                } catch (error) {
-                  log.warn('Problem storing transaction!');
-                  log.warn(tx);
-                  log.warn(transaction!);
-                  throw error;
-                }
               }
-            }
-
-            await trx.commit();
-          });
+              await trx.commit();
+            });
+          } catch (error) {
+            log.error(error);
+            await db.cleanup();
+          }
         } else {
           log.debug('Block storage empty. Waiting...');
           await sleep(5000);
