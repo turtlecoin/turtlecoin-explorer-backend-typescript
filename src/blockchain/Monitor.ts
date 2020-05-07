@@ -116,7 +116,6 @@ export class Monitor extends EventEmitter {
   }
 
   private async process() {
-    this.isSyncing = true;
     while (true) {
       if (inputTaker.killswitch) {
         log.info('Thanks for stopping by!');
@@ -131,6 +130,7 @@ export class Monitor extends EventEmitter {
       try {
         let items = null;
         if (this.blockStorage.length > 0) {
+          this.isSyncing = true;
           try {
             await db.sql.transaction(async (trx) => {
               items = this.blockStorage.pop();
@@ -181,10 +181,12 @@ export class Monitor extends EventEmitter {
                 }
               }
               await trx.commit();
+              this.isSyncing = false;
             });
           } catch (error) {
             log.error(error);
             await db.cleanup();
+            this.isSyncing = false;
           }
         } else {
           log.debug('Block storage empty. Waiting...');
