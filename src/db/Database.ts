@@ -6,6 +6,8 @@ import { EventEmitter } from 'events';
 import knex from 'knex';
 import { Block, Transaction } from 'turtlecoin-utils';
 import {
+  db,
+  rewindBlocks,
   SQL_DB_NAME,
   SQL_HOST,
   SQL_PASSWORD,
@@ -324,6 +326,10 @@ export class Database extends EventEmitter {
         table.integer('timestamp');
         table.specificType('raw_pointer', 'mediumblob');
       });
+    }
+
+    if (rewindBlocks) {
+      await db.cleanup(rewindBlocks);
     }
 
     log.info('Database is ready!');
